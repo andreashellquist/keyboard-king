@@ -52,6 +52,21 @@ js/
 └── app.js        screens, round state machine, event wiring
 ```
 
+## Deployment
+
+Hosted on **Azure Static Web Apps** (Free tier):
+<https://jolly-island-0c8de6a0f.6.azurestaticapps.net>
+
+Every push to `main` triggers `.github/workflows/azure-static-web-apps.yml`,
+which uploads the repo root as-is (no build step). Pull requests get their
+own staging environment, torn down on close. `staticwebapp.config.json`
+handles navigation fallback and basic headers.
+
+Azure resources: resource group `keyboard-king-rg`, static web app
+`keyboard-king`. The Actions workflow authenticates with the
+`AZURE_STATIC_WEB_APPS_API_TOKEN` repo secret (the app's deployment token,
+from `az staticwebapp secrets list`).
+
 ## Accessibility
 
 Real keyboard input drives the whole game (the on-screen keyboard is a
