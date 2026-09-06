@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/js/*", "/*.css", "/*.svg", "/*.png", "/*.ico"]
+  },
+  "mimeTypes": {
+    ".json": "application/json"
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "routes": [
+    {
+      "route": "/js/*",
+      "headers": { "Cache-Control": "public, max-age=3600, must-revalidate" }
+    }
+  ]
+}
