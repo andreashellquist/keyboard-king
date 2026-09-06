@@ -9,6 +9,24 @@
 const KK_STORAGE_KEY = 'kk_state';
 const KK_STORAGE_VERSION = 1;
 
+/**
+ * True only if localStorage actually round-trips. It doesn't under the
+ * `file://` origin in several browsers, in private windows, or when site
+ * data is blocked — in all of those a played round would silently vanish
+ * on reload, so the menu shows a "progress won't be saved" note instead.
+ */
+function kkStorageWorks() {
+  try {
+    const probe = '__kk_probe__';
+    localStorage.setItem(probe, '1');
+    const ok = localStorage.getItem(probe) === '1';
+    localStorage.removeItem(probe);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 function kkClampBox(n) {
   n = Number(n);
   if (!Number.isFinite(n)) return 0;
@@ -38,6 +56,7 @@ function kkDefaultState() {
     crowns: 0,
     avatar: 'knight',
     muted: false,
+    seenFingerGuide: false,
     unlocked: ['homerow'],
     bestStars: { homerow: 0, letters: 0, words: 0, sentences: 0 },
     mastery: { keys: {}, words: {}, sentences: {} },
@@ -73,6 +92,7 @@ function kkLoadState() {
     crowns: kkClampCount(raw.crowns),
     avatar: knownAvatarIds.includes(raw.avatar) ? raw.avatar : fallback.avatar,
     muted: raw.muted === true,
+    seenFingerGuide: raw.seenFingerGuide === true,
     unlocked,
     bestStars,
     mastery: {

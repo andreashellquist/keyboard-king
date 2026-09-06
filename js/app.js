@@ -8,6 +8,7 @@ const PRAISE = ['Great job!', 'Awesome!', 'You got it!', 'Nice typing!', 'Super!
 let PROFILE = kkLoadState();
 let ROUND = null; // transient round state, see startRound()
 let SCREEN = 'menu';
+const STORAGE_OK = kkStorageWorks();
 
 const appEl = document.getElementById('app');
 
@@ -32,6 +33,11 @@ function renderMenu() {
   appEl.innerHTML = `
     <h1 class="title">⌨️👑 Keyboard King</h1>
     <p class="subtitle">Practice typing, rule the keyboard kingdom!</p>
+    ${STORAGE_OK ? '' : `
+      <p class="save-warn" role="status">
+        ⚠️ Progress can't be saved here. Open the game from a web address
+        (http/https), not a file, to keep your crowns.
+      </p>`}
 
     <div class="avatar-row" role="group" aria-label="Choose your character">
       ${KK_AVATARS.map((a) => `
@@ -47,6 +53,7 @@ function renderMenu() {
 
     <button class="btn btn-gold" id="btn-play">Play</button>
     <div class="menu-links">
+      <button class="link-btn" id="btn-fingers">✋ Finger Guide</button>
       <button class="link-btn" id="btn-map">🗺️ Kingdom Map</button>
       <button class="icon-btn" id="btn-mute" aria-pressed="${PROFILE.muted}" aria-label="${PROFILE.muted ? 'Unmute sound' : 'Mute sound'}">${PROFILE.muted ? '🔇' : '🔊'}</button>
     </div>
@@ -61,6 +68,7 @@ function renderMenu() {
     });
   });
   document.getElementById('btn-play').addEventListener('click', renderLevels);
+  document.getElementById('btn-fingers').addEventListener('click', () => renderFingerGuide());
   document.getElementById('btn-map').addEventListener('click', renderMap);
   document.getElementById('btn-mute').addEventListener('click', () => {
     PROFILE.muted = !PROFILE.muted;
@@ -109,9 +117,66 @@ function renderLevels() {
   document.getElementById('btn-back').addEventListener('click', renderMenu);
 }
 
+/* ───────────────────────── FINGER GUIDE ───────────────────────── */
+
+/**
+ * How to place your hands before you type a single key. Reachable any time
+ * from the menu, and shown once automatically before the first Home Row
+ * round (`onContinue` is the "now start the round" callback in that case).
+ */
+function renderFingerGuide(onContinue) {
+  SCREEN = 'fingerguide';
+  ROUND = null;
+
+  const shortFinger = { pinky: 'pinky', ring: 'ring', middle: 'middle', index: 'index' };
+  const keyCells = KK_HOME_BASE.map((p, i) => `
+    <div class="fg-key ${p.bump ? 'bump' : ''} ${i === 4 ? 'split' : ''}">
+      <span class="fg-cap">${p.key === 'ö' ? 'Ö' : p.key.toUpperCase()}</span>
+      <span class="fg-finger">${shortFinger[p.finger]}</span>
+    </div>`).join('');
+
+  appEl.innerHTML = `
+    <h1 class="title">✋ Hand Home Base</h1>
+    <p class="subtitle">Where your fingers live. Always spring back here.</p>
+
+    <div class="fg-hands">
+      <div class="fg-hand-labels">
+        <span>Left hand</span>
+        <span>Right hand</span>
+      </div>
+      <div class="fg-row">${keyCells}</div>
+    </div>
+    <p class="fg-thumbs">Both thumbs rest on the <b>space bar</b> 👍</p>
+
+    <ul class="fg-tips">
+      <li>Feel the little bump on <b>F</b> and <b>J</b> — that's how you find home without looking.</li>
+      <li>Curl your fingers softly, like holding a small ball.</li>
+      <li>Reach for a far key, then let that finger fall straight back to its home key.</li>
+      <li>Try not to peek at the keyboard — let your fingers remember.</li>
+    </ul>
+
+    <button class="btn btn-gold" id="fg-go">${onContinue ? 'Start typing →' : 'Got it!'}</button>
+  `;
+
+  document.getElementById('fg-go').addEventListener('click', onContinue || renderMenu);
+}
+
 /* ───────────────────────── GAME ROUND ───────────────────────── */
 
 function startRound(levelId) {
+  // First time into Home Row: teach the hand position before any typing.
+  if (levelId === 'homerow' && !PROFILE.seenFingerGuide) {
+    renderFingerGuide(() => {
+      PROFILE.seenFingerGuide = true;
+      saveProfile();
+      beginRound(levelId);
+    });
+    return;
+  }
+  beginRound(levelId);
+}
+
+function beginRound(levelId) {
   const level = levelById(levelId);
   const masteryMap = masteryMapFor(level);
   const items = kkComposeRound(level.pool, masteryMap, KK_ROUND_SIZE);
@@ -278,7 +343,7 @@ function renderGame() {
 
   const kbdRows = KK_KEYBOARD_ROWS.map((row) => `
     <div class="kbd-row">
-      ${row.map((k) => `<span class="kbd-key ${KK_HOMEROW.includes(k) ? 'home' : ''} ${k === expected ? 'next' : ''}">${k === ';' ? ';' : k}</span>`).join('')}
+      ${row.map((k) => `<span class="kbd-key ${KK_HOMEROW.includes(k) ? 'home' : ''} ${k === expected ? 'next' : ''}">${k}</span>`).join('')}
     </div>`).join('');
   const spaceRow = level.kind === 'text'
     ? `<div class="kbd-row"><span class="kbd-key ${expected === ' ' ? 'next' : ''}" style="width:min(50vw,240px)">space</span></div>`

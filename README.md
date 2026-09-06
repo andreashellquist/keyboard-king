@@ -7,6 +7,9 @@ punishing timers, and progress that only ever goes up. Here the "pitch" is
 a keyboard kingdom instead of a football pitch, and the fact ladder is one
 key, word or sentence at a time instead of an arithmetic fact.
 
+Built for a **Swedish (SWE) keyboard**: the home row is `a s d f  j k l ö`
+and `å ä ö` sit under the right pinky.
+
 Zero build step — plain HTML/CSS/JS. Open `index.html` in a browser, or
 serve the folder with any static file server (recommended, since some
 browsers restrict `localStorage` under the `file://` origin):
@@ -19,16 +22,23 @@ python3 -m http.server 8080
 
 ## How it plays
 
-1. **Home Row** (`a s d f  j k l ;`) — the foundation every touch-typing
+1. **Home Row** (`a s d f  j k l ö`) — the foundation every touch-typing
    course starts with.
-2. **All Letters** — the full alphabet, shuffled each round.
+2. **All Letters** — the full alphabet plus `å ä ö`, shuffled each round.
 3. **Words** — short, kid-friendly words.
 4. **Sentences** — short, fun full sentences.
+
+Before the very first Home Row round (and any time from the **Finger
+Guide** link on the menu) a **Hand Home Base** screen shows which finger
+rests on which key — left pinky→`a` … right pinky→`ö`, both thumbs on
+space — plus the "find the F and J bumps without looking" habit. It's the
+one bit of explicit technique instruction; everything after that is
+practice.
 
 Levels unlock in order; finishing a round (any score) unlocks the next one
 — nothing is ever locked permanently, and nothing earned is ever taken
 away. Ten prompts per round. A miss just asks for another try, with a
-gentle finger hint (`js/data.js` → `KK_FINGER_MAP`, the standard
+gentle finger hint (`js/data.js` → `KK_FINGER_MAP`, the Swedish
 touch-typing chart) — no red, no penalty, no timer in core practice.
 
 Mastery is tracked per key/word/sentence with a small 6-box ladder

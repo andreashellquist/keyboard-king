@@ -404,6 +404,80 @@ body::before {
   50% { box-shadow: 0 0 0 6px rgba(255,226,52,0); }
 }
 
+/* ── SAVE WARNING ────────────────────────── */
+.save-warn {
+  max-width: 380px;
+  margin: 4px auto 2px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: rgba(255,226,52,.14);
+  border: 1px solid rgba(255,226,52,.4);
+  color: #ffe9a8;
+  font-size: .82rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* ── FINGER GUIDE ────────────────────────── */
+.fg-hands {
+  width: 100%;
+  max-width: 360px;
+  min-width: 0;
+  margin: 8px 0 12px;
+}
+.fg-hand-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  margin-bottom: 6px;
+  font-weight: 900;
+  font-size: .85rem;
+  color: #cabce6;
+}
+.fg-row { display: flex; gap: 3px; justify-content: center; width: 100%; }
+.fg-key {
+  flex: 1 1 0;
+  min-width: 0;
+  background: rgba(255,255,255,.14);
+  border: 2px solid rgba(255,255,255,.22);
+  border-radius: 8px;
+  padding: 7px 1px 5px;
+  text-align: center;
+}
+.fg-key.split { margin-left: 12px; }
+.fg-key.bump {
+  border-color: var(--gold);
+  background: rgba(255,226,52,.16);
+}
+.fg-cap { display: block; font-weight: 900; font-size: 1rem; color: #fff; }
+.fg-finger {
+  display: block;
+  margin-top: 2px;
+  font-size: .56rem;
+  line-height: 1.15;
+  color: #cabce6;
+}
+.fg-thumbs { color: #ddd; font-size: .9rem; margin-bottom: 16px; text-align: center; }
+.fg-thumbs b { color: var(--gold); }
+.fg-tips {
+  list-style: none;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.fg-tips li {
+  background: rgba(255,255,255,.08);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: .9rem;
+  color: #eee;
+}
+.fg-tips b { color: var(--gold); }
+
 /* ── RESULTS ─────────────────────────────── */
 .result-card {
   background: #fff;
