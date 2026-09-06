@@ -1,14 +1,17 @@
-# ⌨️👑 Keyboard King
+# ⌨️⚽ Keyboard King — *Tangentbordsligan*
 
-A typing-practice game for kids, in the same spirit as
-[Math Champions](https://github.com/andreashellquist/math-champions): a
-dark-gradient, gold-accent, big-tap-target arcade with no red, no
-punishing timers, and progress that only ever goes up. Here the "pitch" is
-a keyboard kingdom instead of a football pitch, and the fact ladder is one
-key, word or sentence at a time instead of an arithmetic fact.
+A typing-practice game for kids, a football-themed sibling to
+[Math Champions](https://github.com/andreashellquist/math-champions): the
+same green-pitch gradient, gold accents, big tap targets, no red, no
+punishing timers, and progress that only ever goes up. The fact ladder is
+one key, word or sentence at a time instead of an arithmetic fact; a round
+is a *träningspass*, the currency is *poäng*, and the mastery screen is the
+*Spelplan*.
 
-Built for a **Swedish (SWE) keyboard**: the home row is `a s d f  j k l ö`
-and `å ä ö` sit under the right pinky.
+The repo and code keep the `keyboard-king` / `KK_` name; the in-game title
+is **Tangentbordsligan**. All player-facing copy is **Swedish**, built for
+a **Swedish (SWE) keyboard**: the home row is `a s d f  j k l ö` and
+`å ä ö` sit under the right pinky.
 
 Zero build step — plain HTML/CSS/JS. Open `index.html` in a browser, or
 serve the folder with any static file server (recommended, since some
@@ -43,10 +46,21 @@ touch-typing chart) — no red, no penalty, no timer in core practice.
 
 Mastery is tracked per key/word/sentence with a small 6-box ladder
 (`js/mastery.js`), the same "difficulty is per-fact, not global" idea as
-Math Champions' Leitner system, scaled down. The **Kingdom Map** screen
-shows every practiced key on the real keyboard layout, coloured by
-mastery — the typing equivalent of Math Champions' mastery-map "turf you've
-grown."
+Math Champions' Leitner system, scaled down. The **Spelplan** screen shows
+every practiced key on the real keyboard layout, coloured by mastery — the
+typing equivalent of Math Champions' mastery-map "turf you've grown" — and
+each key's fastest clean reaction time once you've hit it on a good run.
+
+## Progression &amp; rewards
+
+A four-phase reward layer sits on top of practice — silent per-round
+instrumentation, a result-screen "Dina framsteg" block with personal-best
+and tier banners, cross-session milestones, a *poäng* sink (the
+**Klubbshop**, decorative player frames), and a steady-rhythm bonus.
+Speed tiers are measured against the child's *own* first clean round, so a
+slow improver climbs the same ladder as a fast one; accuracy tiers need no
+speed at all; nothing is ever red or taken away. Full design and phase
+status in [`docs/PROGRESSION.md`](docs/PROGRESSION.md).
 
 ## Project structure
 
@@ -54,11 +68,12 @@ grown."
 index.html
 styles.css
 js/
-├── data.js       content: levels, word/sentence lists, finger chart, avatars
-├── storage.js    guarded, sanitised localStorage persistence
+├── data.js       content: levels, word/sentence lists, finger chart, avatars, shop
+├── storage.js    guarded, sanitised localStorage persistence (v2)
 ├── sfx.js        synthesised WebAudio sound effects — no asset files
 ├── confetti.js   lightweight confetti burst, skips under reduced-motion
 ├── mastery.js    per-item Leitner ladder + round composition
+├── progress.js   speed/accuracy tiers, per-round recording, milestones
 └── app.js        screens, round state machine, event wiring
 ```
 
@@ -88,7 +103,8 @@ first-try success is gold.
 
 ## Standing reviewers
 
-`.claude/agents/typing-pedagogy-expert.md` and
-`.claude/agents/kid-ux-reviewer.md` — consult before adding content or
+`.claude/agents/typing-pedagogy-expert.md`,
+`.claude/agents/kid-ux-reviewer.md` and
+`.claude/agents/progression-designer.md` — consult before adding content or
 changing round/reward/timing logic; sibling agents to Math Champions'
 `adhd-expert.md`.

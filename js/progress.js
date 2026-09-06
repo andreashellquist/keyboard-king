@@ -17,12 +17,12 @@
  * Index 0 just means "a baseline round exists".
  */
 const KK_SPEED_TIERS = [
-  { id: 'igang',   name: 'Igång',         icon: '🐣', ratio: 0 },
-  { id: 'spira',   name: 'Spira',         icon: '🌱', ratio: 1.10 },
-  { id: 'faril',   name: 'Fjärilsfart',   icon: '🦋', ratio: 1.25 },
-  { id: 'tassar',  name: 'Snabba tassar', icon: '🐇', ratio: 1.50 },
-  { id: 'vind',    name: 'Vindsnabb',     icon: '🦅', ratio: 1.80 },
-  { id: 'kunglig', name: 'Kunglig fart',  icon: '👑', ratio: 2.20 },
+  { id: 'nykomling', name: 'Nykomling',     icon: '🐣', ratio: 0 },
+  { id: 'startklar', name: 'Startklar',     icon: '👟', ratio: 1.10 },
+  { id: 'kvick',     name: 'Kvick',         icon: '⚡', ratio: 1.25 },
+  { id: 'vindsnabb', name: 'Vindsnabb',     icon: '🏃', ratio: 1.50 },
+  { id: 'turbo',     name: 'Turbo',         icon: '🚀', ratio: 1.80 },
+  { id: 'stjarna',   name: 'Världsstjärna', icon: '⭐', ratio: 2.20 },
 ];
 
 /**
@@ -31,10 +31,10 @@ const KK_SPEED_TIERS = [
  * success, never as an error rate, never in red.
  */
 const KK_ACC_TIERS = [
-  { id: 'spar',   name: 'På rätt spår',    icon: '✋', ratio: 0.50 },
-  { id: 'blick',  name: 'Skarp blick',     icon: '🎯', ratio: 0.70 },
-  { id: 'rena',   name: 'Rena tangenter',  icon: '💎', ratio: 0.85 },
-  { id: 'felfri', name: 'Felfritt anslag', icon: '🌟', ratio: 0.95 },
+  { id: 'traffsaker', name: 'Träffsäker',    icon: '🎯', ratio: 0.50 },
+  { id: 'skarpskytt', name: 'Skarpskytt',    icon: '⚽', ratio: 0.70 },
+  { id: 'prickskytt', name: 'Prickskytt',    icon: '💎', ratio: 0.85 },
+  { id: 'felfri',     name: 'Felfri teknik', icon: '🌟', ratio: 0.95 },
 ];
 
 /**
@@ -58,17 +58,17 @@ function kkSumRungCrowns(table, fromExclusive, toInclusive) {
  * holds the ids already awarded.
  */
 const KK_ROUND_MILESTONES = [
-  { at: 5, id: 'rounds5', crowns: 5, label: '5 rundor spelade' },
-  { at: 10, id: 'rounds10', crowns: 10, label: '10 rundor spelade' },
-  { at: 25, id: 'rounds25', crowns: 15, label: '25 rundor spelade' },
-  { at: 50, id: 'rounds50', crowns: 25, label: '50 rundor spelade' },
-  { at: 100, id: 'rounds100', crowns: 40, label: '100 rundor spelade' },
+  { at: 5, id: 'rounds5', crowns: 5, label: '5 matcher spelade' },
+  { at: 10, id: 'rounds10', crowns: 10, label: '10 matcher spelade' },
+  { at: 25, id: 'rounds25', crowns: 15, label: '25 matcher spelade' },
+  { at: 50, id: 'rounds50', crowns: 25, label: '50 matcher spelade' },
+  { at: 100, id: 'rounds100', crowns: 40, label: '100 matcher spelade' },
 ];
 // (§3.5 also lists a 20-streak milestone, but a round is KK_ROUND_SIZE = 10
 //  items, so the reachable streak milestones are 5 and 10.)
 const KK_STREAK_MILESTONES = [
   { at: 5, id: 'streak5', crowns: 5, label: '5 i rad utan miss' },
-  { at: 10, id: 'streak10', crowns: 12, label: 'hela rundan utan miss' },
+  { at: 10, id: 'streak10', crowns: 12, label: 'hela matchen felfritt' },
 ];
 
 /** Highest tier index whose `ratio` cutoff `value` has reached, or -1 for

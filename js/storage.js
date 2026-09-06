@@ -125,7 +125,7 @@ function kkDefaultState() {
   return {
     v: KK_STORAGE_VERSION,
     crowns: 0,
-    avatar: 'knight',
+    avatar: 'striker',
     muted: false,
     seenFingerGuide: false,
     unlocked: ['homerow'],

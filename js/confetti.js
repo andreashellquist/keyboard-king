@@ -4,7 +4,7 @@
  */
 
 const KKConfetti = (() => {
-  const COLORS = ['#ffe234', '#ffa500', '#7fd4a0', '#b9e0f7', '#d9c8ef', '#fff'];
+  const COLORS = ['#ffe234', '#ffa500', '#3fae5c', '#8fd6a6', '#c8f0d4', '#fff'];
   let layer = null;
 
   function ensureLayer() {

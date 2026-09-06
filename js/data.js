@@ -15,30 +15,29 @@ const KK_HOMEROW = ['a', 's', 'd', 'f', 'j', 'k', 'l', 'ö'];
 const KK_ALL_LETTERS = 'abcdefghijklmnopqrstuvwxyzåäö'.split('');
 
 const KK_WORDS = [
-  'sol', 'is', 'os', 'ko', 'få', 'ny', 'bi', 'ål', 'ägg', 'apa',
-  'hund', 'katt', 'bil', 'hus', 'bok', 'boll', 'fisk', 'get', 'gris', 'häst',
-  'mus', 'orm', 'fågel', 'björn', 'lejon', 'mjölk', 'kaka', 'glass', 'saft', 'ost',
-  'sova', 'leka', 'hoppa', 'springa', 'rita', 'sjunga', 'skratta', 'krona', 'kung', 'slott',
-  'drake', 'riddare', 'magi', 'modig', 'glad', 'stjärna', 'måne', 'träd', 'blomma', 'vatten',
-  'snäll', 'stark', 'snabb', 'fin', 'stor', 'liten',
+  'boll', 'mål', 'lag', 'spel', 'plan', 'pass', 'nick', 'cup', 'byte', 'skott',
+  'hörna', 'straff', 'match', 'seger', 'tröja', 'kanon', 'domare', 'anfall', 'försvar', 'publik',
+  'löpa', 'sparka', 'passa', 'nicka', 'rädda', 'jubla', 'träna', 'vinna', 'spela', 'dribbla',
+  'snabb', 'stark', 'taggad', 'sugen', 'glad', 'läktare', 'spelare', 'huvudet', 'gräset', 'planen',
+  'frispark', 'inkast', 'omgång', 'poäng', 'final', 'pokal', 'tackling', 'lagkapten',
 ];
 
 const KK_SENTENCES = [
-  'katten springer fort',
-  'jag gillar kaka',
-  'solen är varm',
-  'vi leker spel',
-  'hundar gillar att gräva',
-  'kungar bär kronor',
-  'vi skriver och har kul',
-  'räven hoppar högt',
-  'fåglar kan flyga',
-  'hon läser en bok',
-  'draken är snäll',
-  'vi bygger ett slott',
-  'min hund kan hoppa',
-  'månen lyser klart',
-  'vi har jättekul',
+  'vi vann matchen',
+  'han gjorde mål',
+  'bollen rullar fort',
+  'laget tränar hårt',
+  'domaren blåser av',
+  'hon sparkar en hörna',
+  'vi spelar final idag',
+  'målvakten räddar bollen',
+  'publiken jublar högt',
+  'jag passar bollen till dig',
+  'spelaren springer snabbt',
+  'kaptenen lyfter pokalen',
+  'tröjan är blå och gul',
+  'alla springer mot mål',
+  'vi ligger under med ett mål',
 ];
 
 /** Swedish (SWE) touch-typing finger chart. å ä ö and - are right pinky. */
@@ -88,33 +87,33 @@ const KK_HOME_BASE = [
 const KK_LEVELS = [
   { id: 'homerow', name: 'Hemraden', icon: '🏠', tagline: 'Börja på a s d f  j k l ö', pool: KK_HOMEROW, kind: 'char', masteryKey: 'keys' },
   { id: 'letters', name: 'Alla bokstäver', icon: '🔤', tagline: 'Alla bokstäver, a till ö', pool: KK_ALL_LETTERS, kind: 'char', masteryKey: 'keys' },
-  { id: 'words', name: 'Ord', icon: '📝', tagline: 'Korta, snälla ord', pool: KK_WORDS, kind: 'text', masteryKey: 'words' },
-  { id: 'sentences', name: 'Meningar', icon: '📜', tagline: 'Hela kungliga meningar', pool: KK_SENTENCES, kind: 'text', masteryKey: 'sentences' },
+  { id: 'words', name: 'Ord', icon: '📝', tagline: 'Korta, lätta ord', pool: KK_WORDS, kind: 'text', masteryKey: 'words' },
+  { id: 'sentences', name: 'Meningar', icon: '📣', tagline: 'Hela matchreferat', pool: KK_SENTENCES, kind: 'text', masteryKey: 'sentences' },
 ];
 
 const KK_AVATARS = [
-  { id: 'knight', icon: '🤴', label: 'Prins' },
-  { id: 'princess', icon: '👸', label: 'Prinsessa' },
-  { id: 'wizard', icon: '🧙', label: 'Trollkarl' },
-  { id: 'elf', icon: '🧝', label: 'Alv' },
-  { id: 'dragon', icon: '🐉', label: 'Drake' },
-  { id: 'unicorn', icon: '🦄', label: 'Enhörning' },
+  { id: 'striker',  icon: '⚽', label: 'Anfallare' },
+  { id: 'keeper',   icon: '🧤', label: 'Målvakt' },
+  { id: 'mid',      icon: '🏃', label: 'Mittfältare' },
+  { id: 'defender', icon: '🛡️', label: 'Back' },
+  { id: 'dribbler', icon: '👟', label: 'Dribbler' },
+  { id: 'captain',  icon: '🏆', label: 'Kapten' },
 ];
 
 const KK_ROUND_SIZE = 10;
 
 /**
- * Crown sink (docs/PROGRESSION.md §3.8). Purely decorative avatar frames,
+ * Points sink (docs/PROGRESSION.md §3.8). Purely decorative player frames,
  * cheapest first. `css` is a class added to the avatar wrapper. Owning one
  * is permanent; equipping is free; nothing here ever gates content.
  */
 const KK_COSMETICS = [
-  { id: 'guld',     label: 'Guldram',       price: 20,  css: 'kkf-guld' },
-  { id: 'stjarnor', label: 'Stjärnglans',   price: 40,  css: 'kkf-stjarnor' },
-  { id: 'regnbage', label: 'Regnbåge',      price: 70,  css: 'kkf-regnbage' },
-  { id: 'eld',      label: 'Eldkrans',      price: 110, css: 'kkf-eld' },
-  { id: 'kristall', label: 'Kristall',      price: 160, css: 'kkf-kristall' },
-  { id: 'krona',    label: 'Kunglig krona', price: 220, css: 'kkf-krona' },
+  { id: 'guld',     label: 'Guldram',     price: 20,  css: 'kkf-guld' },
+  { id: 'stjarnor', label: 'Stjärnglans', price: 40,  css: 'kkf-stjarnor' },
+  { id: 'lagfarg',  label: 'Lagfärger',   price: 70,  css: 'kkf-regnbage' },
+  { id: 'form',     label: 'I form',      price: 110, css: 'kkf-eld' },
+  { id: 'iskyla',   label: 'Iskyla',      price: 160, css: 'kkf-kristall' },
+  { id: 'pokal',    label: 'Pokal',       price: 220, css: 'kkf-pokal' },
 ];
 
 /* Progression tuning (see docs/PROGRESSION.md). */

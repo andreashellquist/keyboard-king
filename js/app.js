@@ -3,7 +3,7 @@
  * No framework, no build step — plain DOM strings + delegated listeners.
  */
 
-const PRAISE = ['Bra jobbat!', 'Toppen!', 'Du fixade det!', 'Snyggt skrivet!', 'Super!', 'Kungligt!', 'Vad bra!'];
+const PRAISE = ['Mål!', 'Snyggt spelat!', 'Vilken teknik!', 'Toppenpass!', 'Grymt!', 'Proffsigt!', 'Vad bra!'];
 
 let PROFILE = kkLoadState();
 let ROUND = null; // transient round state, see startRound()
@@ -48,12 +48,12 @@ function renderMenu() {
   const crest = anyBaseline ? KK_SPEED_TIERS[Math.max(0, topSpeedTier)] : null;
 
   appEl.innerHTML = `
-    <h1 class="title">⌨️👑 Tangentbordskungen</h1>
-    <p class="subtitle">Träna på att skriva – bli kung över tangentbordet!</p>
+    <h1 class="title">⌨️⚽ Tangentbordsligan</h1>
+    <p class="subtitle">Träna på att skriva – bli proffs på tangentbordet!</p>
     ${STORAGE_OK ? '' : `
       <p class="save-warn" role="status">
         ⚠️ Det går inte att spara här. Öppna spelet från en webbadress
-        (http/https), inte en fil, så att dina kronor sparas.
+        (http/https), inte en fil, så att dina poäng sparas.
       </p>`}
 
     <div class="avatar-row" role="group" aria-label="Välj din figur">
@@ -65,15 +65,15 @@ function renderMenu() {
     </div>
 
     <div class="stats-pill">
-      <span>👑 <b>${PROFILE.crowns}</b> kronor</span>
+      <span>⚽ <b>${PROFILE.crowns}</b> poäng</span>
       ${crest ? `<span class="crest-chip">${crest.icon} ${crest.name}</span>` : ''}
     </div>
 
     <button class="btn btn-gold" id="btn-play">Spela</button>
     <div class="menu-links">
       <button class="link-btn" id="btn-fingers">✋ Fingerguide</button>
-      <button class="link-btn" id="btn-map">🗺️ Kungarikeskarta</button>
-      <button class="link-btn" id="btn-shop">🎁 Butik</button>
+      <button class="link-btn" id="btn-map">⚽ Spelplanen</button>
+      <button class="link-btn" id="btn-shop">🎽 Klubbshop</button>
       <button class="icon-btn" id="btn-mute" aria-pressed="${PROFILE.muted}" aria-label="${PROFILE.muted ? 'Sätt på ljud' : 'Stäng av ljud'}">${PROFILE.muted ? '🔇' : '🔊'}</button>
     </div>
     <button class="link-btn tiny" id="btn-reset">Nollställ framsteg</button>
@@ -125,7 +125,7 @@ function renderLevels() {
   }).join('');
 
   appEl.innerHTML = `
-    <h1 class="title">Välj ett kungarike</h1>
+    <h1 class="title">Välj ett träningspass</h1>
     <p class="subtitle">Välj var du vill träna idag</p>
     <div class="level-grid">${cards}</div>
     <button class="link-btn" id="btn-back">← Tillbaka</button>
@@ -331,7 +331,7 @@ function completeItem() {
   } else {
     ROUND.streak = 0;
     KKSfx.correctRetry();
-    ROUND.feedback = { text: 'Bra rättat!', cls: 'retry' };
+    ROUND.feedback = { text: 'Bra räddning!', cls: 'retry' };
   }
   ROUND.hint = null;
   ROUND.pendingAdvance = true;
@@ -498,9 +498,9 @@ function kkProgressBlockHtml(delta, st, level, steady) {
   }
 
   if (delta.newBestFirstTry) {
-    banners.push({ cls: 'pb', text: `Nytt rekord! Din renaste runda på ${level.name} hittills 💎` });
+    banners.push({ cls: 'pb', text: `Nytt rekord! Ditt renaste pass på ${level.name} hittills 💎` });
   } else if (delta.newBestCps) {
-    banners.push({ cls: 'pb', text: `Nytt rekord! Snabbare än någonsin på ${level.name} 🌱` });
+    banners.push({ cls: 'pb', text: `Nytt rekord! Snabbare än någonsin på ${level.name} ⚡` });
   }
   if (delta.newBestStreak) {
     banners.push({ cls: 'pb', text: `Nytt rekord: ${st.bestStreak} i rad utan miss 🔥` });
@@ -514,7 +514,7 @@ function kkProgressBlockHtml(delta, st, level, steady) {
     banners.push({ cls: 'tier', text: `Du nådde ${t.name} ${t.icon} på ${level.name}!`, crowns: delta.speedBonus });
   }
   if (delta.faster && !delta.newBestCps) {
-    banners.push({ cls: 'faster', text: 'Lite snabbare än förra gången 🌱' });
+    banners.push({ cls: 'faster', text: 'Lite snabbare än förra gången ⚡' });
   }
   if (steady) {
     banners.push({ cls: 'faster', text: 'Jämna händer! Fin rytm 🎵', crowns: 2 });
@@ -524,16 +524,16 @@ function kkProgressBlockHtml(delta, st, level, steady) {
   const pace = kkSpeedPace(st);
 
   let paceLabel;
-  if (pace.atTop) paceLabel = 'Kunglig fart 👑 — du flyger!';
+  if (pace.atTop) paceLabel = 'Världsstjärna ⭐ — du flyger!';
   else paceLabel = `På väg mot ${pace.next.name} ${pace.next.icon}`;
 
   const calm = shown.length === 0
-    ? `<p class="pb-banner calm">${level.name}-fart: ${pace.cur ? pace.cur.name + ' ' + pace.cur.icon : 'Igång 🐣'} — fortsätt så!</p>`
+    ? `<p class="pb-banner calm">${level.name}-fart: ${pace.cur ? pace.cur.name + ' ' + pace.cur.icon : 'Nykomling 🐣'} — fortsätt så!</p>`
     : '';
 
   return `
     <div class="progress-block">
-      ${shown.map((b) => `<p class="pb-banner ${b.cls}">${b.text}${b.crowns ? ` <span class="pb-crowns">+${b.crowns} 👑</span>` : ''}</p>`).join('')}
+      ${shown.map((b) => `<p class="pb-banner ${b.cls}">${b.text}${b.crowns ? ` <span class="pb-crowns">+${b.crowns} ⚽</span>` : ''}</p>`).join('')}
       ${calm}
       <div class="pace">
         <p class="pace-label">${paceLabel}</p>
@@ -546,10 +546,10 @@ function renderResult({ stars, crownsEarned, levelId, next, delta, steady, level
   SCREEN = 'result';
   const level = levelById(levelId);
   const msg = stars === 3
-    ? 'Felfritt! Du är en riktig tangentbordskung.'
+    ? 'Felfritt! Du spelar i proffsligan.'
     : stars === 2
-      ? 'Bra runda – lite mer träning så blir det perfekt.'
-      : 'Bra kämpat! Varje runda gör dig bättre.';
+      ? 'Bra pass – lite mer träning så sitter allt.'
+      : 'Bra kämpat! Varje pass gör dig bättre.';
 
   // Only items that actually needed a retry this round — a flawless round
   // shouldn't come with a "but here's what's still wrong" list.
@@ -568,7 +568,7 @@ function renderResult({ stars, crownsEarned, levelId, next, delta, steady, level
     <div class="result-card">
       <p class="result-title">${level.icon} ${level.name} klar!</p>
       <p class="result-stars">${starsMarkup(stars)}</p>
-      <p class="result-crowns">+${crownsEarned} 👑</p>
+      <p class="result-crowns">+${crownsEarned} ⚽</p>
       <p class="result-msg">${msg}</p>
       ${kkProgressBlockHtml(delta, levelStat, level, steady)}
       ${practice.length ? `
@@ -626,7 +626,7 @@ function renderShop() {
   const buyRow = affordable.length ? `
     <h2 class="shop-h">Att köpa nu</h2>
     <div class="shop-grid">
-      ${affordable.map((c) => frameCard(c.css, c.label, `${c.price} 👑`, `data-buy="${c.id}"`)).join('')}
+      ${affordable.map((c) => frameCard(c.css, c.label, `${c.price} ⚽`, `data-buy="${c.id}"`)).join('')}
     </div>` : '';
 
   const goalRow = nextGoal ? `
@@ -635,12 +635,12 @@ function renderShop() {
       <span class="shop-frame ${nextGoal.css}"><span aria-hidden="true">${icon}</span></span>
       <p class="shop-name">${nextGoal.label}</p>
       <div class="pace-track"><div class="pace-fill" style="width:${Math.round(Math.min(1, PROFILE.crowns / nextGoal.price) * 100)}%"></div></div>
-      <p class="shop-goal-msg">${nextGoal.price - PROFILE.crowns} kronor kvar</p>
+      <p class="shop-goal-msg">${nextGoal.price - PROFILE.crowns} poäng kvar</p>
     </div>` : '';
 
   appEl.innerHTML = `
-    <h1 class="title">🎁 Butik</h1>
-    <p class="subtitle">Du har <b>${PROFILE.crowns}</b> 👑 — ramar till din figur, aldrig något du måste ha.</p>
+    <h1 class="title">🎽 Klubbshop</h1>
+    <p class="subtitle">Du har <b>${PROFILE.crowns}</b> ⚽ — ramar till din spelare, aldrig något du måste ha.</p>
     ${equipRow}
     ${buyRow}
     ${goalRow}
@@ -687,14 +687,14 @@ function renderMap() {
     </div>`).join('');
 
   appEl.innerHTML = `
-    <h1 class="title">🗺️ Kungarikeskarta</h1>
-    <p class="subtitle">Alla tangenter du tränat på, som lyser starkare ju mer du kan.</p>
+    <h1 class="title">⚽ Spelplanen</h1>
+    <p class="subtitle">Alla tangenter du tränat på – starkare i laget ju mer du kan.</p>
     <div id="map-info-slot"></div>
     ${rows}
     <div class="map-legend">
       <span><i style="background:rgba(255,255,255,.12)"></i>Oövad</span>
-      <span><i style="background:#6a5aa0"></i>På gång</span>
-      <span><i style="background:#cbb8ec"></i>Stabil</span>
+      <span><i style="background:#3f9058"></i>På gång</span>
+      <span><i style="background:#a9dcb8"></i>Stabil</span>
       <span><i style="background:#ffe234"></i>Bemästrad</span>
     </div>
     <button class="link-btn" id="btn-back">← Tillbaka</button>
