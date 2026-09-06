@@ -453,9 +453,10 @@ body::before {
 .fg-finger {
   display: block;
   margin-top: 2px;
-  font-size: .56rem;
-  line-height: 1.15;
+  font-size: .54rem;
+  line-height: 1.1;
   color: #cabce6;
+  overflow-wrap: anywhere;
 }
 .fg-thumbs { color: #ddd; font-size: .9rem; margin-bottom: 16px; text-align: center; }
 .fg-thumbs b { color: var(--gold); }

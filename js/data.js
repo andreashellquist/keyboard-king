@@ -15,30 +15,30 @@ const KK_HOMEROW = ['a', 's', 'd', 'f', 'j', 'k', 'l', 'ö'];
 const KK_ALL_LETTERS = 'abcdefghijklmnopqrstuvwxyzåäö'.split('');
 
 const KK_WORDS = [
-  'cat', 'dog', 'sun', 'hat', 'run', 'big', 'red', 'top', 'fun', 'map',
-  'pen', 'cup', 'box', 'key', 'bee', 'ant', 'owl', 'fox', 'bat', 'pig',
-  'log', 'jam', 'van', 'zip', 'mix', 'wow', 'kid', 'mom', 'dad', 'boy',
-  'joy', 'wag', 'hug', 'sit', 'jump', 'play', 'book', 'frog', 'star',
-  'moon', 'king', 'fish', 'milk', 'cake', 'bird', 'ball', 'tree', 'kite',
-  'lion', 'crown', 'happy', 'brave', 'magic', 'castle', 'dragon', 'knight',
+  'sol', 'is', 'os', 'ko', 'få', 'ny', 'bi', 'ål', 'ägg', 'apa',
+  'hund', 'katt', 'bil', 'hus', 'bok', 'boll', 'fisk', 'get', 'gris', 'häst',
+  'mus', 'orm', 'fågel', 'björn', 'lejon', 'mjölk', 'kaka', 'glass', 'saft', 'ost',
+  'sova', 'leka', 'hoppa', 'springa', 'rita', 'sjunga', 'skratta', 'krona', 'kung', 'slott',
+  'drake', 'riddare', 'magi', 'modig', 'glad', 'stjärna', 'måne', 'träd', 'blomma', 'vatten',
+  'snäll', 'stark', 'snabb', 'fin', 'stor', 'liten',
 ];
 
 const KK_SENTENCES = [
-  'the cat runs fast',
-  'i like cake',
-  'the sun is hot',
-  'we play games',
-  'dogs like to dig',
-  'kings wear crowns',
-  'type fast and have fun',
-  'the fox jumps high',
-  'birds can fly',
-  'she reads a book',
-  'the dragon is friendly',
-  'we build a castle',
-  'my dog can jump',
-  'the moon is bright',
-  'we are having fun',
+  'katten springer fort',
+  'jag gillar kaka',
+  'solen är varm',
+  'vi leker spel',
+  'hundar gillar att gräva',
+  'kungar bär kronor',
+  'vi skriver och har kul',
+  'räven hoppar högt',
+  'fåglar kan flyga',
+  'hon läser en bok',
+  'draken är snäll',
+  'vi bygger ett slott',
+  'min hund kan hoppa',
+  'månen lyser klart',
+  'vi har jättekul',
 ];
 
 /** Swedish (SWE) touch-typing finger chart. å ä ö and - are right pinky. */
@@ -59,8 +59,8 @@ const KK_FINGER_MAP = {
 };
 
 const KK_FINGER_LABEL = {
-  pinky: 'pinky finger', ring: 'ring finger', middle: 'middle finger',
-  index: 'pointer finger', thumb: 'thumb',
+  pinky: 'lillfingret', ring: 'ringfingret', middle: 'långfingret',
+  index: 'pekfingret', thumb: 'tummen',
 };
 
 /** Swedish (SWE) keyboard rows for the on-screen keyboard + Kingdom Map, home row marked. */
@@ -86,19 +86,19 @@ const KK_HOME_BASE = [
 ];
 
 const KK_LEVELS = [
-  { id: 'homerow', name: 'Home Row', icon: '🏠', tagline: 'Start on a s d f  j k l ö', pool: KK_HOMEROW, kind: 'char', masteryKey: 'keys' },
-  { id: 'letters', name: 'All Letters', icon: '🔤', tagline: 'Every letter, a to z', pool: KK_ALL_LETTERS, kind: 'char', masteryKey: 'keys' },
-  { id: 'words', name: 'Words', icon: '📝', tagline: 'Short, friendly words', pool: KK_WORDS, kind: 'text', masteryKey: 'words' },
-  { id: 'sentences', name: 'Sentences', icon: '📜', tagline: 'Full royal decrees', pool: KK_SENTENCES, kind: 'text', masteryKey: 'sentences' },
+  { id: 'homerow', name: 'Hemraden', icon: '🏠', tagline: 'Börja på a s d f  j k l ö', pool: KK_HOMEROW, kind: 'char', masteryKey: 'keys' },
+  { id: 'letters', name: 'Alla bokstäver', icon: '🔤', tagline: 'Alla bokstäver, a till ö', pool: KK_ALL_LETTERS, kind: 'char', masteryKey: 'keys' },
+  { id: 'words', name: 'Ord', icon: '📝', tagline: 'Korta, snälla ord', pool: KK_WORDS, kind: 'text', masteryKey: 'words' },
+  { id: 'sentences', name: 'Meningar', icon: '📜', tagline: 'Hela kungliga meningar', pool: KK_SENTENCES, kind: 'text', masteryKey: 'sentences' },
 ];
 
 const KK_AVATARS = [
-  { id: 'knight', icon: '🤴', label: 'Knight' },
-  { id: 'princess', icon: '👸', label: 'Royal' },
-  { id: 'wizard', icon: '🧙', label: 'Wizard' },
-  { id: 'elf', icon: '🧝', label: 'Ranger' },
-  { id: 'dragon', icon: '🐉', label: 'Dragon' },
-  { id: 'unicorn', icon: '🦄', label: 'Unicorn' },
+  { id: 'knight', icon: '🤴', label: 'Prins' },
+  { id: 'princess', icon: '👸', label: 'Prinsessa' },
+  { id: 'wizard', icon: '🧙', label: 'Trollkarl' },
+  { id: 'elf', icon: '🧝', label: 'Alv' },
+  { id: 'dragon', icon: '🐉', label: 'Drake' },
+  { id: 'unicorn', icon: '🦄', label: 'Enhörning' },
 ];
 
 const KK_ROUND_SIZE = 10;

@@ -3,7 +3,7 @@
  * No framework, no build step — plain DOM strings + delegated listeners.
  */
 
-const PRAISE = ['Great job!', 'Awesome!', 'You got it!', 'Nice typing!', 'Super!', 'Royal work!', 'Well done!'];
+const PRAISE = ['Bra jobbat!', 'Toppen!', 'Du fixade det!', 'Snyggt skrivet!', 'Super!', 'Kungligt!', 'Vad bra!'];
 
 let PROFILE = kkLoadState();
 let ROUND = null; // transient round state, see startRound()
@@ -31,15 +31,15 @@ function renderMenu() {
   SCREEN = 'menu';
   ROUND = null;
   appEl.innerHTML = `
-    <h1 class="title">⌨️👑 Keyboard King</h1>
-    <p class="subtitle">Practice typing, rule the keyboard kingdom!</p>
+    <h1 class="title">⌨️👑 Tangentbordskungen</h1>
+    <p class="subtitle">Träna på att skriva – bli kung över tangentbordet!</p>
     ${STORAGE_OK ? '' : `
       <p class="save-warn" role="status">
-        ⚠️ Progress can't be saved here. Open the game from a web address
-        (http/https), not a file, to keep your crowns.
+        ⚠️ Det går inte att spara här. Öppna spelet från en webbadress
+        (http/https), inte en fil, så att dina kronor sparas.
       </p>`}
 
-    <div class="avatar-row" role="group" aria-label="Choose your character">
+    <div class="avatar-row" role="group" aria-label="Välj din figur">
       ${KK_AVATARS.map((a) => `
         <button class="avatar-btn ${a.id === PROFILE.avatar ? 'selected' : ''}" data-avatar="${a.id}" aria-pressed="${a.id === PROFILE.avatar}">
           <span aria-hidden="true">${a.icon}</span>
@@ -48,16 +48,16 @@ function renderMenu() {
     </div>
 
     <div class="stats-pill">
-      <span>👑 <b>${PROFILE.crowns}</b> crowns</span>
+      <span>👑 <b>${PROFILE.crowns}</b> kronor</span>
     </div>
 
-    <button class="btn btn-gold" id="btn-play">Play</button>
+    <button class="btn btn-gold" id="btn-play">Spela</button>
     <div class="menu-links">
-      <button class="link-btn" id="btn-fingers">✋ Finger Guide</button>
-      <button class="link-btn" id="btn-map">🗺️ Kingdom Map</button>
-      <button class="icon-btn" id="btn-mute" aria-pressed="${PROFILE.muted}" aria-label="${PROFILE.muted ? 'Unmute sound' : 'Mute sound'}">${PROFILE.muted ? '🔇' : '🔊'}</button>
+      <button class="link-btn" id="btn-fingers">✋ Fingerguide</button>
+      <button class="link-btn" id="btn-map">🗺️ Kungarikeskarta</button>
+      <button class="icon-btn" id="btn-mute" aria-pressed="${PROFILE.muted}" aria-label="${PROFILE.muted ? 'Sätt på ljud' : 'Stäng av ljud'}">${PROFILE.muted ? '🔇' : '🔊'}</button>
     </div>
-    <button class="link-btn tiny" id="btn-reset">Reset progress</button>
+    <button class="link-btn tiny" id="btn-reset">Nollställ framsteg</button>
   `;
 
   appEl.querySelectorAll('[data-avatar]').forEach((btn) => {
@@ -77,7 +77,7 @@ function renderMenu() {
     renderMenu();
   });
   document.getElementById('btn-reset').addEventListener('click', () => {
-    if (window.confirm('Reset all progress? This cannot be undone.')) {
+    if (window.confirm('Nollställa alla framsteg? Det går inte att ångra.')) {
       PROFILE = kkDefaultState();
       saveProfile();
       renderMenu();
@@ -100,15 +100,15 @@ function renderLevels() {
         <span class="level-tagline">${level.tagline}</span>
         ${unlocked
           ? `<span class="level-stars">${stars ? starsMarkup(stars) : ' '}</span>`
-          : `<span class="level-lock-msg">🔒 Finish ${prevName} first</span>`}
+          : `<span class="level-lock-msg">🔒 Klara ${prevName} först</span>`}
       </button>`;
   }).join('');
 
   appEl.innerHTML = `
-    <h1 class="title">Choose a Kingdom</h1>
-    <p class="subtitle">Pick where to practice today</p>
+    <h1 class="title">Välj ett kungarike</h1>
+    <p class="subtitle">Välj var du vill träna idag</p>
     <div class="level-grid">${cards}</div>
-    <button class="link-btn" id="btn-back">← Back</button>
+    <button class="link-btn" id="btn-back">← Tillbaka</button>
   `;
 
   appEl.querySelectorAll('[data-level]:not(:disabled)').forEach((btn) => {
@@ -128,7 +128,7 @@ function renderFingerGuide(onContinue) {
   SCREEN = 'fingerguide';
   ROUND = null;
 
-  const shortFinger = { pinky: 'pinky', ring: 'ring', middle: 'middle', index: 'index' };
+  const shortFinger = { pinky: 'lill<wbr>finger', ring: 'ring<wbr>finger', middle: 'lång<wbr>finger', index: 'pek<wbr>finger' };
   const keyCells = KK_HOME_BASE.map((p, i) => `
     <div class="fg-key ${p.bump ? 'bump' : ''} ${i === 4 ? 'split' : ''}">
       <span class="fg-cap">${p.key === 'ö' ? 'Ö' : p.key.toUpperCase()}</span>
@@ -136,26 +136,26 @@ function renderFingerGuide(onContinue) {
     </div>`).join('');
 
   appEl.innerHTML = `
-    <h1 class="title">✋ Hand Home Base</h1>
-    <p class="subtitle">Where your fingers live. Always spring back here.</p>
+    <h1 class="title">✋ Fingrarnas hemmaplan</h1>
+    <p class="subtitle">Här bor dina fingrar. Kom alltid tillbaka hit.</p>
 
     <div class="fg-hands">
       <div class="fg-hand-labels">
-        <span>Left hand</span>
-        <span>Right hand</span>
+        <span>Vänster hand</span>
+        <span>Höger hand</span>
       </div>
       <div class="fg-row">${keyCells}</div>
     </div>
-    <p class="fg-thumbs">Both thumbs rest on the <b>space bar</b> 👍</p>
+    <p class="fg-thumbs">Båda tummarna vilar på <b>mellanslag</b> 👍</p>
 
     <ul class="fg-tips">
-      <li>Feel the little bump on <b>F</b> and <b>J</b> — that's how you find home without looking.</li>
-      <li>Curl your fingers softly, like holding a small ball.</li>
-      <li>Reach for a far key, then let that finger fall straight back to its home key.</li>
-      <li>Try not to peek at the keyboard — let your fingers remember.</li>
+      <li>Känn den lilla kanten på <b>F</b> och <b>J</b> – så hittar du hem utan att titta.</li>
+      <li>Böj fingrarna mjukt, som när du håller en liten boll.</li>
+      <li>Sträck dig efter en tangent långt bort, och låt fingret falla rakt tillbaka till sin hemtangent.</li>
+      <li>Försök att inte kika på tangentbordet – låt fingrarna komma ihåg.</li>
     </ul>
 
-    <button class="btn btn-gold" id="fg-go">${onContinue ? 'Start typing →' : 'Got it!'}</button>
+    <button class="btn btn-gold" id="fg-go">${onContinue ? 'Börja skriva →' : 'Okej!'}</button>
   `;
 
   document.getElementById('fg-go').addEventListener('click', onContinue || renderMenu);
@@ -208,12 +208,14 @@ function expectedChar() {
   return ROUND.level.kind === 'char' ? item : item[ROUND.typedIndex];
 }
 
+const KK_HAND_LABEL = { left: 'vänstra', right: 'högra', either: '' };
+
 function buildHint(ch) {
   const info = KK_FINGER_MAP[ch];
   if (!info) return null;
-  if (ch === ' ') return 'Tap the space bar with your thumb! 👍';
+  if (ch === ' ') return 'Tryck på mellanslag med tummen! 👍';
   const label = KK_FINGER_LABEL[info.finger];
-  return `Try your ${info.hand} ${label}! 👉`;
+  return `Prova med det ${KK_HAND_LABEL[info.hand]} ${label}! 👉`;
 }
 
 function handleKeydown(e) {
@@ -272,7 +274,7 @@ function completeItem() {
   } else {
     ROUND.streak = 0;
     KKSfx.correctRetry();
-    ROUND.feedback = { text: 'Nice fix!', cls: 'retry' };
+    ROUND.feedback = { text: 'Bra rättat!', cls: 'retry' };
   }
   ROUND.hint = null;
   ROUND.pendingAdvance = true;
@@ -346,13 +348,13 @@ function renderGame() {
       ${row.map((k) => `<span class="kbd-key ${KK_HOMEROW.includes(k) ? 'home' : ''} ${k === expected ? 'next' : ''}">${k}</span>`).join('')}
     </div>`).join('');
   const spaceRow = level.kind === 'text'
-    ? `<div class="kbd-row"><span class="kbd-key ${expected === ' ' ? 'next' : ''}" style="width:min(50vw,240px)">space</span></div>`
+    ? `<div class="kbd-row"><span class="kbd-key ${expected === ' ' ? 'next' : ''}" style="width:min(50vw,240px)">mellanslag</span></div>`
     : '';
 
   appEl.innerHTML = `
     <div class="top-row">
-      <button class="link-btn tiny" id="btn-exit">← Menu</button>
-      <span class="streak-chip">🔥 Streak ${ROUND.streak}</span>
+      <button class="link-btn tiny" id="btn-exit">← Meny</button>
+      <span class="streak-chip">🔥 ${ROUND.streak} i rad</span>
     </div>
     <div class="round-bar">
       <span>${level.icon} ${level.name}</span>
@@ -361,7 +363,7 @@ function renderGame() {
 
     <div class="stage" id="stage">
       ${promptHtml}
-      ${ROUND.pendingAdvance ? '<p class="skip-hint">tap to continue</p>' : ''}
+      ${ROUND.pendingAdvance ? '<p class="skip-hint">tryck för att fortsätta</p>' : ''}
     </div>
 
     <div class="hint-slot">
@@ -395,10 +397,10 @@ function renderResult({ stars, crownsEarned, levelId, next }) {
   SCREEN = 'result';
   const level = levelById(levelId);
   const msg = stars === 3
-    ? "Flawless! You're a true Keyboard King."
+    ? 'Felfritt! Du är en riktig tangentbordskung.'
     : stars === 2
-      ? 'Great round — a little more practice and it\'s perfect.'
-      : "Good effort! Every round makes you faster.";
+      ? 'Bra runda – lite mer träning så blir det perfekt.'
+      : 'Bra kämpat! Varje runda gör dig bättre.';
 
   // Only items that actually needed a retry this round — a flawless round
   // shouldn't come with a "but here's what's still wrong" list.
@@ -415,20 +417,20 @@ function renderResult({ stars, crownsEarned, levelId, next }) {
 
   appEl.innerHTML = `
     <div class="result-card">
-      <p class="result-title">${level.icon} ${level.name} complete!</p>
+      <p class="result-title">${level.icon} ${level.name} klar!</p>
       <p class="result-stars">${starsMarkup(stars)}</p>
       <p class="result-crowns">+${crownsEarned} 👑</p>
       <p class="result-msg">${msg}</p>
       ${practice.length ? `
         <div class="practice-block">
-          <p class="practice-label">Keep practicing:</p>
+          <p class="practice-label">Fortsätt träna på:</p>
           <ul class="practice-list">${practice.map((p) => `<li>${p}</li>`).join('')}</ul>
         </div>` : ''}
       <div class="result-btns">
-        <button class="btn btn-gold" id="btn-again">Play Again</button>
+        <button class="btn btn-gold" id="btn-again">Spela igen</button>
         ${next ? `<button class="btn btn-white" id="btn-next">${next.icon} ${next.name}</button>` : ''}
       </div>
-      <button class="link-btn tiny" id="btn-menu" style="margin-top:12px">Back to Menu</button>
+      <button class="link-btn tiny" id="btn-menu" style="margin-top:12px">Till menyn</button>
     </div>
   `;
 
@@ -452,17 +454,17 @@ function renderMap() {
     </div>`).join('');
 
   appEl.innerHTML = `
-    <h1 class="title">🗺️ Kingdom Map</h1>
-    <p class="subtitle">Every key you've practiced, growing brighter with mastery.</p>
+    <h1 class="title">🗺️ Kungarikeskarta</h1>
+    <p class="subtitle">Alla tangenter du tränat på, som lyser starkare ju mer du kan.</p>
     <div id="map-info-slot"></div>
     ${rows}
     <div class="map-legend">
-      <span><i style="background:rgba(255,255,255,.12)"></i>Untouched</span>
-      <span><i style="background:#6a5aa0"></i>Learning</span>
-      <span><i style="background:#cbb8ec"></i>Solid</span>
-      <span><i style="background:#ffe234"></i>Mastered</span>
+      <span><i style="background:rgba(255,255,255,.12)"></i>Oövad</span>
+      <span><i style="background:#6a5aa0"></i>På gång</span>
+      <span><i style="background:#cbb8ec"></i>Stabil</span>
+      <span><i style="background:#ffe234"></i>Bemästrad</span>
     </div>
-    <button class="link-btn" id="btn-back">← Back</button>
+    <button class="link-btn" id="btn-back">← Tillbaka</button>
   `;
 
   const infoSlot = document.getElementById('map-info-slot');
@@ -472,7 +474,7 @@ function renderMap() {
       const entry = keys[k] || { box: 0, seen: 0 };
       infoSlot.innerHTML = `
         <div class="map-info">
-          Key "${k === ' ' ? 'space' : k.toUpperCase()}" — practiced ${entry.seen} time${entry.seen === 1 ? '' : 's'}, level ${entry.box}/5
+          Tangent "${k === ' ' ? 'mellanslag' : k.toUpperCase()}" – tränad ${entry.seen} gång${entry.seen === 1 ? '' : 'er'}, nivå ${entry.box}/5
         </div>`;
     });
   });
