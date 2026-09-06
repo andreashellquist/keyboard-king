@@ -223,10 +223,12 @@ function beginRound(levelId) {
     itemStartAt: 0,
     itemTimes: [],
     bestStreakThisRound: 0,
+    itemShownAt: 0, // when the current prompt was painted — for per-key reaction time (Phase 4)
   };
   KKSfx.unlock();
   SCREEN = 'game';
   renderGame();
+  ROUND.itemShownAt = performance.now();
 }
 
 function currentItem() { return ROUND.items[ROUND.index]; }
@@ -306,6 +308,17 @@ function completeItem() {
   if (ROUND.itemStartAt) ROUND.itemTimes.push(performance.now() - ROUND.itemStartAt);
   ROUND.itemStartAt = 0;
 
+  // Per-key fastest clean reaction time, char levels only (Phase 4 →
+  // Kingdom Map). Only a first-try single key counts; ignore implausible
+  // spans (tab-away, a very early accidental press).
+  if (ROUND.level.kind === 'char' && outcome === 'first' && ROUND.itemShownAt) {
+    const react = performance.now() - ROUND.itemShownAt;
+    if (react >= 60 && react <= 8000) {
+      const prev = PROFILE.stats.keyTimes[item];
+      if (!prev || react < prev) PROFILE.stats.keyTimes[item] = Math.round(react);
+    }
+  }
+
   if (outcome === 'first') {
     ROUND.streak++;
     if (ROUND.streak > ROUND.bestStreakThisRound) ROUND.bestStreakThisRound = ROUND.streak;
@@ -338,8 +351,9 @@ function advance() {
   ROUND.itemStartAt = 0; // think-time before the next item is not typing time
   ROUND.feedback = null;
   ROUND.hint = null;
-  if (ROUND.index >= ROUND.items.length) finishRound();
-  else renderGame();
+  if (ROUND.index >= ROUND.items.length) { finishRound(); return; }
+  renderGame();
+  ROUND.itemShownAt = performance.now();
 }
 
 function skipAdvance() {
@@ -369,10 +383,12 @@ function finishRound() {
     bestStreak: ROUND.bestStreakThisRound,
     itemCount: total,
   });
-  const crownsTotal = crownsEarned + delta.bonusCrowns;
+  const { steady } = kkRoundSmoothness(ROUND.itemTimes, ROUND.items.map((it) => it.length), ratio);
+  const steadyBonus = steady ? 2 : 0;
+  const crownsTotal = crownsEarned + delta.bonusCrowns + steadyBonus;
   PROFILE.crowns += crownsTotal;
   if (/[?&]debug\b/.test(location.search)) {
-    console.log('[kk] round recorded', { cps: cps.toFixed(2), ratio: ratio.toFixed(2), delta, stats: PROFILE.stats.perLevel[levelId] });
+    console.log('[kk] round recorded', { cps: cps.toFixed(2), ratio: ratio.toFixed(2), steady, delta, stats: PROFILE.stats.perLevel[levelId] });
   }
 
   saveProfile();
@@ -389,6 +405,7 @@ function finishRound() {
     levelId,
     next: next && PROFILE.unlocked.includes(next.id) ? next : null,
     delta,
+    steady,
     levelStat: PROFILE.stats.perLevel[levelId],
   });
 }
@@ -472,7 +489,7 @@ function renderGame() {
  * nothing was beaten, just a calm status line + the ribbon. Never a
  * slower-than-last line, never red.
  */
-function kkProgressBlockHtml(delta, st, level) {
+function kkProgressBlockHtml(delta, st, level, steady) {
   if (!delta || !st) return '';
   const banners = [];
 
@@ -499,6 +516,9 @@ function kkProgressBlockHtml(delta, st, level) {
   if (delta.faster && !delta.newBestCps) {
     banners.push({ cls: 'faster', text: 'Lite snabbare än förra gången 🌱' });
   }
+  if (steady) {
+    banners.push({ cls: 'faster', text: 'Jämna händer! Fin rytm 🎵', crowns: 2 });
+  }
 
   const shown = banners.slice(0, 2);
   const pace = kkSpeedPace(st);
@@ -522,7 +542,7 @@ function kkProgressBlockHtml(delta, st, level) {
     </div>`;
 }
 
-function renderResult({ stars, crownsEarned, levelId, next, delta, levelStat }) {
+function renderResult({ stars, crownsEarned, levelId, next, delta, steady, levelStat }) {
   SCREEN = 'result';
   const level = levelById(levelId);
   const msg = stars === 3
@@ -550,7 +570,7 @@ function renderResult({ stars, crownsEarned, levelId, next, delta, levelStat }) 
       <p class="result-stars">${starsMarkup(stars)}</p>
       <p class="result-crowns">+${crownsEarned} 👑</p>
       <p class="result-msg">${msg}</p>
-      ${kkProgressBlockHtml(delta, levelStat, level)}
+      ${kkProgressBlockHtml(delta, levelStat, level, steady)}
       ${practice.length ? `
         <div class="practice-block">
           <p class="practice-label">Fortsätt träna på:</p>
@@ -681,13 +701,15 @@ function renderMap() {
   `;
 
   const infoSlot = document.getElementById('map-info-slot');
+  const keyTimes = PROFILE.stats.keyTimes || {};
   appEl.querySelectorAll('.map-cell').forEach((btn) => {
     btn.addEventListener('click', () => {
       const k = btn.dataset.key;
       const entry = keys[k] || { box: 0, seen: 0 };
+      const best = keyTimes[k];
       infoSlot.innerHTML = `
         <div class="map-info">
-          Tangent "${k === ' ' ? 'mellanslag' : k.toUpperCase()}" – tränad ${entry.seen} gång${entry.seen === 1 ? '' : 'er'}, nivå ${entry.box}/5
+          Tangent "${k === ' ' ? 'mellanslag' : k.toUpperCase()}" – tränad ${entry.seen} gång${entry.seen === 1 ? '' : 'er'}, nivå ${entry.box}/5${best ? `<br><span class="map-best">⚡ snabbast: ${best} ms</span>` : ''}
         </div>`;
     });
   });

@@ -580,6 +580,8 @@ body::before {
 .shop-goal-msg { font-size: .8rem; color: #cabce6; font-weight: 700; }
 .shop-done { color: var(--gold); font-weight: 900; margin: 14px 0; }
 
+.map-best { display: inline-block; margin-top: 6px; font-weight: 900; color: #a35f00; font-size: .9rem; }
+
 .shop-frame {
   display: inline-flex; width: 52px; height: 52px;
   align-items: center; justify-content: center;

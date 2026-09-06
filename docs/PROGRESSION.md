@@ -2,17 +2,15 @@
 
 > Planned by the `progression-designer` brief (`.claude/agents/progression-designer.md`).
 >
-> **Status:** Phases **1, 2 and 3 are built**. Phase 1 = silent
-> instrumentation + storage v2. Phase 2 = result-screen "Dina framsteg"
-> block, tier & nudge crown bonuses, `KKSfx.personalBest()`, menu crest
-> chip. Phase 3 = one-time milestones (`rounds5/10/25/50/100`,
-> `streak5/10`) as top-priority banners, and the crown sink — a Butik
-> screen selling decorative avatar frames under the hard "affordable +
-> one next goal" rule, frames applied to the selected avatar. The
-> optional ~1-in-8 sparkle drop is **deliberately skipped** — free
-> cosmetics undercut the sink and add farm/again incentives; revisit only
-> if engagement data asks for it. Phase 4 not built. `?debug` logs each
-> recorded round.
+> **Status:** Phases **1–4 are built**, except the Time Trial surface
+> (deferred — see Phase 4). Phase 1 = silent instrumentation + storage v2.
+> Phase 2 = result-screen "Dina framsteg" block, tier & nudge crown
+> bonuses, `KKSfx.personalBest()`, menu crest chip. Phase 3 = one-time
+> milestones as top-priority banners + the Butik crown sink (decorative
+> avatar frames, "affordable + one next goal" rule); the ~1-in-8 sparkle
+> drop is deliberately skipped. Phase 4 = "Jämna händer" steady-rhythm
+> banner (+2 👑, text levels) and per-key fastest reaction time on the
+> Kingdom Map popover. `?debug` logs each recorded round.
 >
 > **Open tuning question for reviewer sign-off:** tier crown bonuses cascade
 > — a first round at 100 % first-try immediately pays every accuracy rung
@@ -281,10 +279,11 @@ Crowns currently buy nothing — all six `KK_AVATARS` are free from the start (`
 - Verified headless: 5 perfect rounds → `milestonesPaid` = `["streak5","streak10","rounds5"]`; shop at 95 crowns shows Guldram(owned) + Stjärnglans/Regnbåge(buy) + Eldkrans(goal, "15 kronor kvar"), Kristall/Krona hidden; buying Guldram: 20 crowns spent, owned+equipped, frame class on the menu avatar; no console errors.
 - **Still owed — reviewer sign-off:** `kid-ux-reviewer` (shop can't create a want-can't-afford state; milestone banner load) **and** `typing-pedagogy-expert` (frames never touch round composition or content).
 
-### Phase 4 — Consistency polish + Kingdom Map integration  **(NICE)**
-- Ships: within-round "steady hands" smoothness reward from `ROUND.itemTimes`; per-key fastest-clean time on the Kingdom Map cell popover (`renderMap`, `js/app.js:442-480`); optional opt-in "Time Trial" surface — a separate screen, never the default path, never gates content.
-- Depends on: Phase 1 (`itemTimes`; persist a per-key/-item time map here, not before).
-- **Sign-off before merge:** `kid-ux-reviewer` + `typing-pedagogy-expert` (Time Trial isolation and labelling) **and** `progression-designer`.
+### Phase 4 — Consistency polish + Kingdom Map integration  **(BUILT ✅, Time Trial deferred)**
+- Shipped: `kkRoundSmoothness` in `js/progress.js` — per-character time of each item, coefficient of variation; `cv < 0.45` with `firstTryRatio ≥ 0.7` on a text level flags the round "steady", worth a "Jämna händer! Fin rytm 🎵 +2 👑" banner (`faster` styling, after the faster-than-last line). Char levels are excluded (their items complete in the tick they start). `finishRound` adds the +2. Per-key fastest clean reaction time — `performance.now() - ROUND.itemShownAt` on a first-try char keystroke, clamped to 60–8000 ms, `min`-tracked in `PROFILE.stats.keyTimes` (new; sanitised on load, 1–60000 ms) and shown as "⚡ snabbast: N ms" on the Kingdom Map cell popover (`renderMap`).
+- **Deferred: the opt-in "Time Trial" surface.** It introduces a timed mode, which the `kid-ux-reviewer` constraints treat as high-risk ("clearly separate, opt-in, never the default"), and the spec requires that reviewer's sign-off before merge. Build it as its own change once `kid-ux-reviewer` and `typing-pedagogy-expert` have reviewed the framing and labelling.
+- Verified headless: two char rounds populate `keyTimes` (18 keys), the map popover shows the fastest ms, a steady text round adds the banner + 2 crowns, no console errors.
+- **Still owed — reviewer sign-off:** `kid-ux-reviewer` (steady-rhythm as a reward vs. accuracy focus; the ms figure on the map for a child) **and** `typing-pedagogy-expert` (is an even rhythm the right thing to reward at this level).
 
 ---
 

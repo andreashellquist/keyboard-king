@@ -85,6 +85,28 @@ function kkSpeedTierFromRatio(r) { return kkTierFromRatio(KK_SPEED_TIERS, r); }
 function kkAccTierFromRatio(a) { return kkTierFromRatio(KK_ACC_TIERS, a); }
 
 /**
+ * "Steady hands" check (docs/PROGRESSION.md §5 Phase 4). Looks at the
+ * per-character time of each item in the round; a low coefficient of
+ * variation means an even rhythm rather than lurching. Text levels only —
+ * char-level items complete in the same tick they start, so their times
+ * carry no rhythm signal. Returns { steady, cv }.
+ */
+function kkRoundSmoothness(itemTimes, itemLengths, firstTryRatio) {
+  const perChar = [];
+  for (let i = 0; i < itemTimes.length; i++) {
+    const len = Math.max(1, itemLengths[i] || 1);
+    const t = itemTimes[i] / len;
+    if (t > 25) perChar.push(t); // drop near-instant (char levels, fluke keys)
+  }
+  if (perChar.length < 6) return { steady: false, cv: null };
+  const mean = perChar.reduce((a, b) => a + b, 0) / perChar.length;
+  if (mean <= 0) return { steady: false, cv: null };
+  const variance = perChar.reduce((a, b) => a + (b - mean) * (b - mean), 0) / perChar.length;
+  const cv = Math.sqrt(variance) / mean;
+  return { steady: cv < 0.45 && firstTryRatio >= 0.7, cv };
+}
+
+/**
  * How full the speed pace-ribbon should be and what it points at, from a
  * per-level stat record. The bar only ever fills; at the top tier it is
  * full and static.

@@ -138,6 +138,7 @@ function kkDefaultState() {
       },
       roundsTotal: 0, itemsTotal: 0, bestStreakEver: 0,
       milestonesPaid: [],
+      keyTimes: {}, // char -> fastest clean reaction time in ms (Kingdom Map)
     },
     cosmetics: { owned: [], equipped: null }, // ships empty; used from Phase 3
   };
@@ -176,9 +177,16 @@ function kkLoadState() {
     milestonesPaid: Array.isArray(rawStats.milestonesPaid)
       ? [...new Set(rawStats.milestonesPaid.filter((x) => typeof x === 'string'))]
       : [],
+    keyTimes: {},
   };
   for (const id of knownLevelIds) {
     stats.perLevel[id] = kkSanitizeLevelStat(rawStats.perLevel && rawStats.perLevel[id]);
+  }
+  if (rawStats.keyTimes && typeof rawStats.keyTimes === 'object') {
+    for (const k of Object.keys(rawStats.keyTimes)) {
+      const ms = Number(rawStats.keyTimes[k]);
+      if (Number.isFinite(ms) && ms >= 1 && ms <= 60000) stats.keyTimes[k] = Math.round(ms);
+    }
   }
 
   const knownCosmeticIds = (typeof KK_COSMETICS !== 'undefined') ? KK_COSMETICS.map((c) => c.id) : [];
