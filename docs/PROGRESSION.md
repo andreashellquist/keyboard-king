@@ -1,12 +1,17 @@
 # Keyboard King — Progression & Reward Layer: Implementation Spec
 
 > Planned by the `progression-designer` brief (`.claude/agents/progression-designer.md`).
-> Not yet built. Phase 1 is implementable straight from this doc.
 >
-> **Localisation note:** all tier names, banner copy and status lines below
-> are written in English for the spec. Per the project's Swedish-only rule,
-> every player-facing string here must ship in Swedish (see `js/app.js`
-> `PRAISE` / `KK_LEVELS` for the established tone).
+> **Status:** Phase 1 (silent instrumentation + storage v2) is **built** —
+> `js/progress.js`, `js/storage.js` v2, `ROUND` timing capture in
+> `js/app.js`, `KK_IDLE_CAP_MS` / `KK_SPEED_FLOOR` in `js/data.js`. Nothing
+> is shown to the player yet; `?debug` logs each recorded round to the
+> console. Phases 2–4 below are not built.
+>
+> **Localisation:** tier names are Swedish (see §3.1–3.2). The Phase 2+
+> banner/status copy below is illustrative Swedish — finalise wording with
+> `kid-ux-reviewer` when those surfaces are built. Established tone lives in
+> `js/app.js` `PRAISE` and `KK_LEVELS`.
 
 ## Highest-impact change (do this first, everything else builds on it)
 
@@ -149,27 +154,27 @@ All writes are `max` / append / monotonic. `st.lastCps` is the **only** field th
 
 ### 3.1 Speed tiers (per level) — `KK_SPEED_TIERS`
 
-Cutoff is `r = bestCps / baselineCps`.
+Cutoff is `r = bestCps / baselineCps`. Names as shipped in `js/progress.js`.
 
-| idx | name | icon | `ratio` cutoff | meaning |
-|---|---|---|---|---|
-| 0 | Getting Started | 🐣 | first qualifying round done (baseline set) | — |
-| 1 | Sprout | 🌱 | 1.10 | 10% faster than your start |
-| 2 | Fluttering | 🦋 | 1.25 | |
-| 3 | Quick Paws | 🐇 | 1.50 | |
-| 4 | Soaring | 🦅 | 1.80 | |
-| 5 | Royal Speed | 👑 | 2.20 | |
+| idx | id | name (SV) | icon | `ratio` cutoff | meaning |
+|---|---|---|---|---|---|
+| 0 | `igang`   | Igång         | 🐣 | first qualifying round done (baseline set) | — |
+| 1 | `spira`   | Spira         | 🌱 | 1.10 | 10% faster than your own start |
+| 2 | `faril`   | Fjärilsfart   | 🦋 | 1.25 | |
+| 3 | `tassar`  | Snabba tassar | 🐇 | 1.50 | |
+| 4 | `vind`    | Vindsnabb     | 🦅 | 1.80 | |
+| 5 | `kunglig` | Kunglig fart  | 👑 | 2.20 | |
 
 ### 3.2 Accuracy tiers (per level) — `KK_ACC_TIERS`
 
-Cutoff is `bestFirstTry`. Framed as first-try success, never error %, never red (`typing-pedagogy-expert` + `kid-ux-reviewer` constraints).
+Cutoff is `bestFirstTry`. Framed as first-try success, never error %, never red (`typing-pedagogy-expert` + `kid-ux-reviewer` constraints). Names as shipped in `js/progress.js`.
 
-| idx | name | icon | cutoff |
-|---|---|---|---|
-| 0 | On Target | ✋ | 0.50 |
-| 1 | Sharp Eye | 🎯 | 0.70 |
-| 2 | Clean Hands | 💎 | 0.85 |
-| 3 | Flawless Touch | 🌟 | 0.95 |
+| idx | id | name (SV) | icon | cutoff |
+|---|---|---|---|---|
+| 0 | `spar`   | På rätt spår    | ✋ | 0.50 |
+| 1 | `blick`  | Skarp blick     | 🎯 | 0.70 |
+| 2 | `rena`   | Rena tangenter  | 💎 | 0.85 |
+| 3 | `felfri` | Felfritt anslag | 🌟 | 0.95 |
 
 Four rungs reachable by accuracy alone with no speed gate.
 
@@ -178,14 +183,14 @@ Four rungs reachable by accuracy alone with no speed gate.
 Inserted in `renderResult` (`js/app.js:394-438`), **above** the existing practice block (`js/app.js:422-426`), **below** stars + crowns (`js/app.js:419-420`, unchanged). Render only the lines that are true, in this priority order, max 3 lines shown:
 
 1. **Personal-best banner** (`newBestCps || newBestFirstTry || newBestStreak`): gold card.
-   - `newBestFirstTry`: "New best! Your cleanest round on Words yet 💎" (accuracy wins the slot if two fire).
-   - `newBestCps`: "New best! Faster than ever on Words 🌱"
-   - `newBestStreak`: "New record: {n} in a row without a slip 🔥"
-2. **Tier-up banner** (`speedTierUp || accTierUp`): "You reached {tier.name} {tier.icon} on {level.name}!" — accuracy tier-up shown first if both.
-3. **"Faster than last time"** (`faster && !newBestCps`): "A little faster than last time 🌱" — soft, gold, no number.
-4. **Pace ribbon** — always shown: a bar that **only fills**, `width` = `clamp(0.04, progressToNextTier, 1) * 100%`. Label "On your way to {nextTier.name} {nextTier.icon}". At top tier: "Royal Speed 👑 — you're flying!" and a full, static bar. No empty-state colour, no deficit, never depletes.
+   - `newBestFirstTry`: "Nytt rekord! Din renaste runda på Ord hittills 💎" (accuracy wins the slot if two fire).
+   - `newBestCps`: "Nytt rekord! Snabbare än någonsin på Ord 🌱"
+   - `newBestStreak`: "Nytt rekord: {n} i rad utan miss 🔥"
+2. **Tier-up banner** (`speedTierUp || accTierUp`): "Du nådde {tier.name} {tier.icon} på {level.name}!" — accuracy tier-up shown first if both.
+3. **"Faster than last time"** (`faster && !newBestCps`): "Lite snabbare än förra gången 🌱" — soft, gold, no number.
+4. **Pace ribbon** — always shown: a bar that **only fills**, `width` = `clamp(0.04, progressToNextTier, 1) * 100%`. Label "På väg mot {nextTier.name} {nextTier.icon}". At top tier: "Kunglig fart 👑 — du flyger!" and a full, static bar. No empty-state colour, no deficit, never depletes.
 
-If nothing was beaten and no tier rose: show only the pace ribbon + a calm status line ("Words pace: Quick Paws 🐇 — keep going!"). **Never** "you didn't improve", never a slower-than-last-time line.
+If nothing was beaten and no tier rose: show only the pace ribbon + a calm status line ("Ord-fart: Snabba tassar 🐇 — fortsätt så!"). **Never** "du blev inte bättre", never a slower-than-last-time line.
 
 Colours: `--gold` (`styles.css:13`), `#7fd4a0` green (`styles.css:263`), white. New CSS goes in the RESULTS section (`styles.css:481-507`). Bar fill transition gated behind `--motion` (`styles.css:16-18`); banners appear without slide animation when `--motion:0`.
 
@@ -195,12 +200,12 @@ Sound: one new `KKSfx.personalBest()` in `js/sfx.js` — reuse the `streak()` en
 
 | Speed tier reached | +crowns | Accuracy tier reached | +crowns |
 |---|---|---|---|
-| Getting Started | 2 | On Target | 5 |
-| Sprout | 4 | Sharp Eye | 10 |
-| Fluttering | 6 | Clean Hands | 18 |
-| Quick Paws | 10 | Flawless Touch | 30 |
-| Soaring | 14 | | |
-| Royal Speed | 20 | | |
+| Igång | 2 | På rätt spår | 5 |
+| Spira | 4 | Skarp blick | 10 |
+| Fjärilsfart | 6 | Rena tangenter | 18 |
+| Snabba tassar | 10 | Felfritt anslag | 30 |
+| Vindsnabb | 14 | | |
+| Kunglig fart | 20 | | |
 
 Per-rung, accuracy ≥ speed at every ordinal, and the top accuracy bonus (30) > top speed bonus (20).
 
@@ -217,11 +222,11 @@ Guarded by `profile.stats.milestonesPaid` (string ids, append-only). Determinist
 | `roundsTotal` reaches 5 / 10 / 25 / 50 / 100 | `rounds5`… | 5 / 10 / 15 / 25 / 40 |
 | `bestStreakEver` reaches 5 / 10 / 20 | `streak5`… | 5 / 12 / 25 |
 
-Shown as line 1-priority banners in the Progress block ("Milestone! 50 rounds played 🏅 +25 👑").
+Shown as line 1-priority banners in the Progress block ("Milstolpe! 50 rundor spelade 🏅 +25 👑").
 
 ### 3.6 Menu badge
 
-`stats-pill` (`js/app.js:50-52`, `styles.css:166-179`) gains a single "highest crest" chip: the top `speedTier` icon across all levels, e.g. `🐇 Quick Paws`. Tapping it is not required (decorative). No per-level clutter on the menu.
+`stats-pill` (`js/app.js:50-52`, `styles.css:166-179`) gains a single "highest crest" chip: the top `speedTier` icon across all levels, e.g. `🐇 Snabba tassar`. Tapping it is not required (decorative). No per-level clutter on the menu.
 
 ### 3.7 Reward schedule — deterministic vs variable
 
@@ -242,17 +247,16 @@ Crowns currently buy nothing — all six `KK_AVATARS` are free from the start (`
 - **No core timer:** timing is captured silently as `performance.now()` deltas inside `handleKeydown`; nothing counts down, nothing time-related renders during a round, and `msActive` drops idle gaps over 5000ms so a distracted child is never effectively rushed — the derived WPM never leaves `js/progress.js`.
 - **Accuracy never pays less than speed:** `bestCps` only updates when `firstTryRatio >= 0.6`, so no speed tier is reachable by mashing; per-rung the accuracy crown bonus ≥ the speed bonus and the top accuracy bonus (30) beats the top speed bonus (20); the per-round formula (`js/app.js:307`) still pays first-try double.
 - **Personal-best only:** every comparison is `st.*` vs this round on the same profile; baseline is the child's own first qualifying round; no leaderboard, no seeded "average child", no rival avatar, no peer data of any kind.
-- **Safe for the slow 6-year-old (8 WPM after two weeks):** speed tiers are ratio-to-own-baseline, so 8→10 WPM earns *Sprout* exactly as 20→25 WPM does; there is no absolute WPM floor and no "below X" state; the first qualifying round always earns *Getting Started* + crowns; a round that beats nothing still ends on praise + stars + crowns as it does today; leaving mid-round via `btn-exit` (`js/app.js:386-389`) still records and forfeits nothing because nothing is written until `finishRound`.
+- **Safe for the slow 6-year-old (8 WPM after two weeks):** speed tiers are ratio-to-own-baseline, so 8→10 WPM earns *Spira* exactly as 20→25 WPM does; there is no absolute WPM floor and no "below X" state; the first qualifying round always earns *Igång* + crowns; a round that beats nothing still ends on praise + stars + crowns as it does today; leaving mid-round via `btn-exit` (`js/app.js:386-389`) still records and forfeits nothing because nothing is written until `finishRound`.
 
 ---
 
 ## 5. Phased build order
 
-### Phase 1 — Instrumentation + silent recording  **(MUST, highest impact)**
-- Ships: `ROUND` timing fields; capture in `handleKeydown` / `completeItem` / `advance` / `finishRound`; `js/progress.js` (`kkRecordRound`, tier constants, tier functions); `js/storage.js` v2 shape + sanitisers + migration (section 6); `<script src="js/progress.js">` in `index.html` (`index.html:19`). No user-visible change (optionally a `?debug` console line).
-- Depends on: nothing.
-- Rationale for shipping alone: de-risks the data model; lets real bests accumulate so Phase 2 launches non-empty for returning children.
-- **Sign-off before merge:** `typing-pedagogy-expert` (is CPS + first-try-ratio + best-streak the right skill signal; is the 0.6 floor correct; does gating speed on accuracy adequately prevent hunt-and-peck being rewarded as "fast") **and** `kid-ux-reviewer` (5000ms idle cap value; confirm nothing user-visible rushes the child; confirm no data is written on `btn-exit`).
+### Phase 1 — Instrumentation + silent recording  **(BUILT ✅)**
+- Shipped: `ROUND` timing fields + capture in `handleKeydown` / `completeItem` / `advance` / `finishRound`; `js/progress.js` (`kkRecordRound`, `KK_SPEED_TIERS` / `KK_ACC_TIERS`, `kkSpeedTierFromRatio` / `kkAccTierFromRatio`); `js/storage.js` v2 (`kkDefaultLevelStat`, `kkClampRatio01`, `kkClampCps`, `kkSanitizeLevelStat`, `stats` + `cosmetics` in default + load); `KK_IDLE_CAP_MS` / `KK_SPEED_FLOOR` in `js/data.js`; `<script src="js/progress.js">` between `data.js` and `storage.js` in `index.html`. No user-visible change; `?debug` logs each recorded round.
+- Verified: fresh profile → `v:2`, empty `stats`; a played round writes `baselineCps` / `bestCps` / `bestFirstTry` / `bestStreak` / tiers / `roundsTotal`; a v1 save migrates with every crown, star, unlock and mastery box intact and no timing back-filled; no bonus crowns paid; `cps` clamped at the write point.
+- **Still owed — reviewer sign-off (retroactive, before Phase 2 builds on it):** `typing-pedagogy-expert` (is CPS + first-try-ratio + best-streak the right skill signal; is the 0.6 floor correct; does gating speed on accuracy adequately prevent hunt-and-peck being rewarded as "fast") **and** `kid-ux-reviewer` (5000ms idle cap value; confirm no data is written on `btn-exit`).
 
 ### Phase 2 — Result-screen reward surfaces  **(MUST)**
 - Ships: "Your Progress" block in `renderResult` (`js/app.js:394-438`); pace ribbon; personal-best / tier-up / streak-record banners; new CSS in `styles.css` RESULTS section; `KKSfx.personalBest()` in `js/sfx.js`; menu crest chip in `stats-pill`.

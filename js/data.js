@@ -102,3 +102,7 @@ const KK_AVATARS = [
 ];
 
 const KK_ROUND_SIZE = 10;
+
+/* Progression tuning (see docs/PROGRESSION.md). */
+const KK_IDLE_CAP_MS = 5000;  // inter-key gaps longer than this don't count as typing time
+const KK_SPEED_FLOOR = 0.6;   // a round needs firstTryRatio >= this to set/beat a speed best

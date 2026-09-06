@@ -196,6 +196,13 @@ function beginRound(levelId) {
     shakeToken: 0,
     pendingAdvance: false,
     advanceTimer: null,
+    // Progression instrumentation (silent — see docs/PROGRESSION.md Phase 1).
+    msActive: 0,
+    lastKeyAt: 0,
+    correctChars: 0,
+    itemStartAt: 0,
+    itemTimes: [],
+    bestStreakThisRound: 0,
   };
   KKSfx.unlock();
   SCREEN = 'game';
@@ -230,11 +237,24 @@ function handleKeydown(e) {
 
   if (key === ' ') e.preventDefault();
 
+  // Silent timing capture (docs/PROGRESSION.md Phase 1): sum inter-key gaps,
+  // dropping any pause longer than KK_IDLE_CAP_MS so a distracted child is
+  // never effectively rushed. Nothing here renders.
+  const now = performance.now();
+  if (ROUND.lastKeyAt) {
+    const gap = now - ROUND.lastKeyAt;
+    if (gap <= KK_IDLE_CAP_MS) ROUND.msActive += gap;
+  }
+  ROUND.lastKeyAt = now;
+  if (!ROUND.itemStartAt) ROUND.itemStartAt = now;
+
   const expected = expectedChar();
   if (key === expected) {
     if (ROUND.level.kind === 'char') {
+      ROUND.correctChars++;
       completeItem();
     } else {
+      ROUND.correctChars++;
       ROUND.typedIndex++;
       if (ROUND.typedIndex >= currentItem().length) {
         completeItem();
@@ -263,8 +283,12 @@ function completeItem() {
   ROUND.tally[outcome]++;
   ROUND.dotStates[ROUND.index] = outcome === 'first' ? 'first' : 'retry';
 
+  if (ROUND.itemStartAt) ROUND.itemTimes.push(performance.now() - ROUND.itemStartAt);
+  ROUND.itemStartAt = 0;
+
   if (outcome === 'first') {
     ROUND.streak++;
+    if (ROUND.streak > ROUND.bestStreakThisRound) ROUND.bestStreakThisRound = ROUND.streak;
     KKSfx.correct();
     if (ROUND.streak === 3 || ROUND.streak === 5 || ROUND.streak >= 8) {
       KKSfx.streak();
@@ -291,6 +315,7 @@ function advance() {
   ROUND.index++;
   ROUND.typedIndex = 0;
   ROUND.missCount = 0;
+  ROUND.itemStartAt = 0; // think-time before the next item is not typing time
   ROUND.feedback = null;
   ROUND.hint = null;
   if (ROUND.index >= ROUND.items.length) finishRound();
@@ -313,6 +338,22 @@ function finishRound() {
   const idx = levelIndex(levelId);
   const next = KK_LEVELS[idx + 1];
   if (next && !PROFILE.unlocked.includes(next.id)) PROFILE.unlocked.push(next.id);
+
+  // Silent progression recording (docs/PROGRESSION.md Phase 1): personal
+  // bests + tiers are written to PROFILE.stats but nothing is shown and no
+  // bonus crowns are paid yet — that arrives with the result-screen surfaces.
+  const secActive = Math.max(ROUND.msActive / 1000, 0.001);
+  const cps = ROUND.correctChars / secActive;
+  const progressDelta = kkRecordRound(PROFILE, levelId, {
+    cps,
+    firstTryRatio: ratio,
+    bestStreak: ROUND.bestStreakThisRound,
+    itemCount: total,
+  });
+  if (/[?&]debug\b/.test(location.search)) {
+    console.log('[kk] round recorded', { cps: cps.toFixed(2), ratio: ratio.toFixed(2), progressDelta, stats: PROFILE.stats.perLevel[levelId] });
+  }
+
   saveProfile();
 
   KKSfx.roundDone(stars - 1);
