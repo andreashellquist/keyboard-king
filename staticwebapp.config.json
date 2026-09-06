@@ -14,7 +14,11 @@
   "routes": [
     {
       "route": "/js/*",
-      "headers": { "Cache-Control": "public, max-age=3600, must-revalidate" }
+      "headers": { "Cache-Control": "no-cache" }
+    },
+    {
+      "route": "/styles.css",
+      "headers": { "Cache-Control": "no-cache" }
     }
   ]
 }
