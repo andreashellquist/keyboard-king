@@ -103,6 +103,20 @@ const KK_AVATARS = [
 
 const KK_ROUND_SIZE = 10;
 
+/**
+ * Crown sink (docs/PROGRESSION.md §3.8). Purely decorative avatar frames,
+ * cheapest first. `css` is a class added to the avatar wrapper. Owning one
+ * is permanent; equipping is free; nothing here ever gates content.
+ */
+const KK_COSMETICS = [
+  { id: 'guld',     label: 'Guldram',       price: 20,  css: 'kkf-guld' },
+  { id: 'stjarnor', label: 'Stjärnglans',   price: 40,  css: 'kkf-stjarnor' },
+  { id: 'regnbage', label: 'Regnbåge',      price: 70,  css: 'kkf-regnbage' },
+  { id: 'eld',      label: 'Eldkrans',      price: 110, css: 'kkf-eld' },
+  { id: 'kristall', label: 'Kristall',      price: 160, css: 'kkf-kristall' },
+  { id: 'krona',    label: 'Kunglig krona', price: 220, css: 'kkf-krona' },
+];
+
 /* Progression tuning (see docs/PROGRESSION.md). */
 const KK_IDLE_CAP_MS = 5000;  // inter-key gaps longer than this don't count as typing time
 const KK_SPEED_FLOOR = 0.6;   // a round needs firstTryRatio >= this to set/beat a speed best

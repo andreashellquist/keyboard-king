@@ -19,6 +19,15 @@ function levelIndex(id) { return KK_LEVELS.findIndex((l) => l.id === id); }
 
 function masteryMapFor(level) { return PROFILE.mastery[level.masteryKey]; }
 
+function avatarIcon() {
+  const a = KK_AVATARS.find((x) => x.id === PROFILE.avatar) || KK_AVATARS[0];
+  return a.icon;
+}
+function equippedFrameCss() {
+  const c = KK_COSMETICS.find((x) => x.id === PROFILE.cosmetics.equipped);
+  return c ? c.css : '';
+}
+
 function starsMarkup(n, max = 3) {
   let s = '';
   for (let i = 0; i < max; i++) s += i < n ? '⭐' : '☆';
@@ -49,7 +58,7 @@ function renderMenu() {
 
     <div class="avatar-row" role="group" aria-label="Välj din figur">
       ${KK_AVATARS.map((a) => `
-        <button class="avatar-btn ${a.id === PROFILE.avatar ? 'selected' : ''}" data-avatar="${a.id}" aria-pressed="${a.id === PROFILE.avatar}">
+        <button class="avatar-btn ${a.id === PROFILE.avatar ? 'selected ' + equippedFrameCss() : ''}" data-avatar="${a.id}" aria-pressed="${a.id === PROFILE.avatar}">
           <span aria-hidden="true">${a.icon}</span>
           <span class="avatar-label">${a.label}</span>
         </button>`).join('')}
@@ -64,6 +73,7 @@ function renderMenu() {
     <div class="menu-links">
       <button class="link-btn" id="btn-fingers">✋ Fingerguide</button>
       <button class="link-btn" id="btn-map">🗺️ Kungarikeskarta</button>
+      <button class="link-btn" id="btn-shop">🎁 Butik</button>
       <button class="icon-btn" id="btn-mute" aria-pressed="${PROFILE.muted}" aria-label="${PROFILE.muted ? 'Sätt på ljud' : 'Stäng av ljud'}">${PROFILE.muted ? '🔇' : '🔊'}</button>
     </div>
     <button class="link-btn tiny" id="btn-reset">Nollställ framsteg</button>
@@ -79,6 +89,7 @@ function renderMenu() {
   document.getElementById('btn-play').addEventListener('click', renderLevels);
   document.getElementById('btn-fingers').addEventListener('click', () => renderFingerGuide());
   document.getElementById('btn-map').addEventListener('click', renderMap);
+  document.getElementById('btn-shop').addEventListener('click', renderShop);
   document.getElementById('btn-mute').addEventListener('click', () => {
     PROFILE.muted = !PROFILE.muted;
     KKSfx.setMuted(PROFILE.muted);
@@ -465,6 +476,10 @@ function kkProgressBlockHtml(delta, st, level) {
   if (!delta || !st) return '';
   const banners = [];
 
+  for (const m of delta.milestonesHit || []) {
+    banners.push({ cls: 'milestone', text: `Milstolpe! ${m.label} 🏅`, crowns: m.crowns });
+  }
+
   if (delta.newBestFirstTry) {
     banners.push({ cls: 'pb', text: `Nytt rekord! Din renaste runda på ${level.name} hittills 💎` });
   } else if (delta.newBestCps) {
@@ -552,6 +567,89 @@ function renderResult({ stars, crownsEarned, levelId, next, delta, levelStat }) 
   document.getElementById('btn-again').addEventListener('click', () => startRound(levelId));
   if (next) document.getElementById('btn-next').addEventListener('click', () => startRound(next.id));
   document.getElementById('btn-menu').addEventListener('click', renderMenu);
+}
+
+/* ───────────────────────── SHOP (crown sink) ───────────────────────── */
+
+/**
+ * Decorative avatar frames bought with crowns (docs/PROGRESSION.md §3.8).
+ * Hard rule: never show a wall of prices a child can't reach — only what
+ * they can afford now, plus exactly one next-goal item with a fill-only
+ * bar. Frames never gate anything; equipping is free; buying can't take
+ * crowns below zero.
+ */
+function renderShop() {
+  SCREEN = 'shop';
+  ROUND = null;
+
+  const { owned, equipped } = PROFILE.cosmetics;
+  const icon = avatarIcon();
+  const unowned = KK_COSMETICS.filter((c) => !owned.includes(c.id));
+  const affordable = unowned.filter((c) => PROFILE.crowns >= c.price);
+  const nextGoal = unowned.find((c) => PROFILE.crowns < c.price); // list is price-sorted
+
+  const frameCard = (cls, name, tag, attr) =>
+    `<button class="shop-card" ${attr}>
+      <span class="shop-frame ${cls}"><span aria-hidden="true">${icon}</span></span>
+      <span class="shop-name">${name}</span>
+      <span class="shop-tag">${tag}</span>
+    </button>`;
+
+  const equipRow = owned.length ? `
+    <div class="shop-grid">
+      ${frameCard('', 'Ingen ram', equipped ? 'Sätt på' : '✓ På', `data-equip=""${equipped ? '' : ' data-on'}`)}
+      ${KK_COSMETICS.filter((c) => owned.includes(c.id)).map((c) =>
+        frameCard(c.css, c.label, equipped === c.id ? '✓ På' : 'Sätt på', `data-equip="${c.id}"${equipped === c.id ? ' data-on' : ''}`)
+      ).join('')}
+    </div>` : '';
+
+  const buyRow = affordable.length ? `
+    <h2 class="shop-h">Att köpa nu</h2>
+    <div class="shop-grid">
+      ${affordable.map((c) => frameCard(c.css, c.label, `${c.price} 👑`, `data-buy="${c.id}"`)).join('')}
+    </div>` : '';
+
+  const goalRow = nextGoal ? `
+    <h2 class="shop-h">Nästa mål</h2>
+    <div class="shop-goal">
+      <span class="shop-frame ${nextGoal.css}"><span aria-hidden="true">${icon}</span></span>
+      <p class="shop-name">${nextGoal.label}</p>
+      <div class="pace-track"><div class="pace-fill" style="width:${Math.round(Math.min(1, PROFILE.crowns / nextGoal.price) * 100)}%"></div></div>
+      <p class="shop-goal-msg">${nextGoal.price - PROFILE.crowns} kronor kvar</p>
+    </div>` : '';
+
+  appEl.innerHTML = `
+    <h1 class="title">🎁 Butik</h1>
+    <p class="subtitle">Du har <b>${PROFILE.crowns}</b> 👑 — ramar till din figur, aldrig något du måste ha.</p>
+    ${equipRow}
+    ${buyRow}
+    ${goalRow}
+    ${unowned.length === 0 ? '<p class="shop-done">Du har alla ramar! 🌟</p>' : ''}
+    <button class="link-btn" id="btn-back">← Tillbaka</button>
+  `;
+
+  appEl.querySelectorAll('[data-equip]').forEach((b) => {
+    b.classList.toggle('equipped', b.hasAttribute('data-on'));
+    b.addEventListener('click', () => {
+      PROFILE.cosmetics.equipped = b.dataset.equip || null;
+      saveProfile();
+      renderShop();
+    });
+  });
+  appEl.querySelectorAll('[data-buy]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const c = KK_COSMETICS.find((x) => x.id === b.dataset.buy);
+      if (!c || PROFILE.crowns < c.price || PROFILE.cosmetics.owned.includes(c.id)) return;
+      PROFILE.crowns -= c.price;
+      PROFILE.cosmetics.owned.push(c.id);
+      PROFILE.cosmetics.equipped = c.id;
+      KKSfx.personalBest();
+      KKConfetti.burst(30);
+      saveProfile();
+      renderShop();
+    });
+  });
+  document.getElementById('btn-back').addEventListener('click', renderMenu);
 }
 
 /* ───────────────────────── KINGDOM MAP ───────────────────────── */

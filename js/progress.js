@@ -52,6 +52,25 @@ function kkSumRungCrowns(table, fromExclusive, toInclusive) {
   return sum;
 }
 
+/**
+ * One-time milestones (docs/PROGRESSION.md §3.5). Global, cross-level,
+ * cross-session. Each pays once, ever — `profile.stats.milestonesPaid`
+ * holds the ids already awarded.
+ */
+const KK_ROUND_MILESTONES = [
+  { at: 5, id: 'rounds5', crowns: 5, label: '5 rundor spelade' },
+  { at: 10, id: 'rounds10', crowns: 10, label: '10 rundor spelade' },
+  { at: 25, id: 'rounds25', crowns: 15, label: '25 rundor spelade' },
+  { at: 50, id: 'rounds50', crowns: 25, label: '50 rundor spelade' },
+  { at: 100, id: 'rounds100', crowns: 40, label: '100 rundor spelade' },
+];
+// (§3.5 also lists a 20-streak milestone, but a round is KK_ROUND_SIZE = 10
+//  items, so the reachable streak milestones are 5 and 10.)
+const KK_STREAK_MILESTONES = [
+  { at: 5, id: 'streak5', crowns: 5, label: '5 i rad utan miss' },
+  { at: 10, id: 'streak10', crowns: 12, label: 'hela rundan utan miss' },
+];
+
 /** Highest tier index whose `ratio` cutoff `value` has reached, or -1 for
  *  "below the first rung". (Speed tier 0 has cutoff 0, so any qualifying
  *  round clears it; accuracy tier 0 needs 0.50 first-try.) */
@@ -169,8 +188,21 @@ function kkRecordRound(profile, levelId, { cps, firstTryRatio, bestStreak, itemC
   if (out.newBestCps && out.speedRungReached < 0) bonus += 1;
   if (out.newBestFirstTry && out.accRungReached < 0) bonus += 2;
   if (out.newBestStreak) bonus += 1;
-  out.bonusCrowns = bonus;
 
-  // Milestones (§3.5) remain Phase 3.
+  // One-time milestones (§3.5). Append-only ledger, paid once ever.
+  const paid = s.milestonesPaid;
+  const checkMilestones = (list, value) => {
+    for (const m of list) {
+      if (value >= m.at && !paid.includes(m.id)) {
+        paid.push(m.id);
+        bonus += m.crowns;
+        out.milestonesHit.push({ id: m.id, label: m.label, crowns: m.crowns });
+      }
+    }
+  };
+  checkMilestones(KK_ROUND_MILESTONES, s.roundsTotal);
+  checkMilestones(KK_STREAK_MILESTONES, s.bestStreakEver);
+
+  out.bonusCrowns = bonus;
   return out;
 }

@@ -2,11 +2,17 @@
 
 > Planned by the `progression-designer` brief (`.claude/agents/progression-designer.md`).
 >
-> **Status:** Phases **1 and 2 are built**. Phase 1 = silent instrumentation
-> + storage v2. Phase 2 = result-screen "Dina framsteg" block (personal-best
-> / tier-up / faster-than-last banners + speed pace-ribbon), tier & nudge
-> crown bonuses, `KKSfx.personalBest()`, menu crest chip. Phases 3–4 not
-> built. `?debug` logs each recorded round.
+> **Status:** Phases **1, 2 and 3 are built**. Phase 1 = silent
+> instrumentation + storage v2. Phase 2 = result-screen "Dina framsteg"
+> block, tier & nudge crown bonuses, `KKSfx.personalBest()`, menu crest
+> chip. Phase 3 = one-time milestones (`rounds5/10/25/50/100`,
+> `streak5/10`) as top-priority banners, and the crown sink — a Butik
+> screen selling decorative avatar frames under the hard "affordable +
+> one next goal" rule, frames applied to the selected avatar. The
+> optional ~1-in-8 sparkle drop is **deliberately skipped** — free
+> cosmetics undercut the sink and add farm/again incentives; revisit only
+> if engagement data asks for it. Phase 4 not built. `?debug` logs each
+> recorded round.
 >
 > **Open tuning question for reviewer sign-off:** tier crown bonuses cascade
 > — a first round at 100 % first-try immediately pays every accuracy rung
@@ -270,10 +276,10 @@ Crowns currently buy nothing — all six `KK_AVATARS` are free from the start (`
 - Verified headless: two rounds on a fresh profile → banners render, ribbon fills to the right fraction, crown total matches the base + cascaded rung bonuses + nudges, crest chip shows "🐇 Snabba tassar", no console errors, v1/v2 saves still migrate.
 - **Still owed — reviewer sign-off:** `kid-ux-reviewer` (≤3 lines, wording, motion, bar-only-fills, cascade crown amounts) **and** `typing-pedagogy-expert` (tier names/cutoffs don't imply speed over technique; accuracy copy leads; "faster" line never shows alongside a low first-try round).
 
-### Phase 3 — Milestones + crown sink  **(SHOULD)**
-- Ships: milestone crowns (`roundsTotal`, `bestStreakEver`, `milestonesPaid`); `KK_COSMETICS` in `js/data.js`; Shop screen from menu; `cosmetics.owned` / `equipped`; avatar render honours equipped cosmetic; optional 1-in-8 cosmetic sparkle drop.
-- Depends on: Phase 1 (stats), Phase 2 (banner CSS + vocabulary).
-- **Sign-off before merge:** `progression-designer` (self — schedule, overjustification risk, sparkle-drop is truly non-farmable) **and** `kid-ux-reviewer` (shop cannot create a want-can't-afford state) **and** `typing-pedagogy-expert` (cosmetics never gate content or round composition).
+### Phase 3 — Milestones + crown sink  **(BUILT ✅)**
+- Shipped: `KK_ROUND_MILESTONES` (5/10/25/50/100 rounds → 5/10/15/25/40 👑) and `KK_STREAK_MILESTONES` (5, 10 in a row → 5/12 👑; the §3.5 "20" is unreachable with a 10-item round) in `js/progress.js`; `kkRecordRound` awards each once via the `milestonesPaid` ledger and returns `milestonesHit`, which `kkProgressBlockHtml` renders as top-priority `.pb-banner.milestone` lines. `KK_COSMETICS` (6 avatar frames, 20–220 crowns) in `js/data.js`; `renderShop` (menu → 🎁 Butik) shows the owned/equip row, every currently-affordable frame, and **exactly one** next-goal frame with a fill-only bar — nothing dearer is shown. Buying deducts crowns (never below 0), auto-equips, plays `KKSfx.personalBest()`. `equippedFrameCss()` puts the frame on the selected avatar button; `styles.css` SHOP + AVATAR FRAMES section. The optional 1-in-8 sparkle drop is **skipped** — free cosmetics undercut the sink.
+- Verified headless: 5 perfect rounds → `milestonesPaid` = `["streak5","streak10","rounds5"]`; shop at 95 crowns shows Guldram(owned) + Stjärnglans/Regnbåge(buy) + Eldkrans(goal, "15 kronor kvar"), Kristall/Krona hidden; buying Guldram: 20 crowns spent, owned+equipped, frame class on the menu avatar; no console errors.
+- **Still owed — reviewer sign-off:** `kid-ux-reviewer` (shop can't create a want-can't-afford state; milestone banner load) **and** `typing-pedagogy-expert` (frames never touch round composition or content).
 
 ### Phase 4 — Consistency polish + Kingdom Map integration  **(NICE)**
 - Ships: within-round "steady hands" smoothness reward from `ROUND.itemTimes`; per-key fastest-clean time on the Kingdom Map cell popover (`renderMap`, `js/app.js:442-480`); optional opt-in "Time Trial" surface — a separate screen, never the default path, never gates content.
