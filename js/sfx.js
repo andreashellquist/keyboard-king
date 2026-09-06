@@ -47,5 +47,12 @@ const KKSfx = (() => {
       for (let i = 0; i < count; i++) tone(notes[Math.min(i, notes.length - 1)], i * 0.11, 0.18, 'triangle', 0.16);
     },
     streak() { tone(988, 0, 0.08, 'triangle', 0.14); tone(1318.5, 0.06, 0.1, 'triangle', 0.14); },
+    // Personal best / tier-up — three rising triangle tones, a touch brighter
+    // than a streak so a new record feels distinct (docs/PROGRESSION.md §3.3).
+    personalBest() {
+      tone(880, 0, 0.09, 'triangle', 0.14);
+      tone(1174.66, 0.08, 0.1, 'triangle', 0.14);
+      tone(1567.98, 0.17, 0.14, 'triangle', 0.14);
+    },
   };
 })();

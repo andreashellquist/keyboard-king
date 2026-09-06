@@ -177,6 +177,14 @@ body::before {
   justify-content: center;
 }
 .stats-pill b { color: var(--gold); }
+.crest-chip {
+  background: rgba(255,226,52,.16);
+  border: 1px solid rgba(255,226,52,.4);
+  color: var(--gold);
+  border-radius: 50px;
+  padding: 2px 12px;
+  font-weight: 800;
+}
 
 .avatar-row {
   display: flex;
@@ -505,6 +513,39 @@ body::before {
   color: var(--ink);
 }
 
+/* ── PROGRESS BLOCK (result screen, docs/PROGRESSION.md §3.3) ── */
+.progress-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 2px 0 16px;
+  text-align: left;
+}
+.pb-banner {
+  border-radius: 12px;
+  padding: 9px 12px;
+  font-weight: 800;
+  font-size: .9rem;
+  line-height: 1.3;
+  animation: pb-in calc(var(--motion) * .28s) ease-out;
+}
+.pb-banner.pb     { background: rgba(255,226,52,.24); color: #5f4600; border: 1px solid rgba(255,165,0,.55); }
+.pb-banner.tier   { background: rgba(255,226,52,.16); color: #5f4600; border: 1px solid rgba(255,165,0,.4); }
+.pb-banner.faster { background: #e9faf0; color: #14683f; border: 1px solid #a2ddbe; }
+.pb-banner.calm   { background: #f2eefb; color: var(--ink); border: 1px solid #ddd0f2; }
+.pb-crowns { color: #a35f00; }
+
+.pace { background: #f2eefb; border-radius: 12px; padding: 10px 12px; }
+.pace-label { font-weight: 800; font-size: .82rem; color: var(--ink); margin-bottom: 6px; }
+.pace-track { height: 10px; border-radius: 6px; background: rgba(0,0,0,.10); overflow: hidden; }
+.pace-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+  transition: width calc(var(--motion) * .6s) ease-out;
+}
+@keyframes pb-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
 .result-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 4px; }
 
 /* ── KINGDOM MAP (mastery) ────────────────── */
@@ -556,7 +597,8 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage.shake, .kbd-key.next { animation: none; }
+  .stage.shake, .kbd-key.next, .pb-banner { animation: none; }
+  .pace-fill { transition: none; }
 }
 
 @media (max-width: 480px) {

@@ -2,11 +2,18 @@
 
 > Planned by the `progression-designer` brief (`.claude/agents/progression-designer.md`).
 >
-> **Status:** Phase 1 (silent instrumentation + storage v2) is **built** —
-> `js/progress.js`, `js/storage.js` v2, `ROUND` timing capture in
-> `js/app.js`, `KK_IDLE_CAP_MS` / `KK_SPEED_FLOOR` in `js/data.js`. Nothing
-> is shown to the player yet; `?debug` logs each recorded round to the
-> console. Phases 2–4 below are not built.
+> **Status:** Phases **1 and 2 are built**. Phase 1 = silent instrumentation
+> + storage v2. Phase 2 = result-screen "Dina framsteg" block (personal-best
+> / tier-up / faster-than-last banners + speed pace-ribbon), tier & nudge
+> crown bonuses, `KKSfx.personalBest()`, menu crest chip. Phases 3–4 not
+> built. `?debug` logs each recorded round.
+>
+> **Open tuning question for reviewer sign-off:** tier crown bonuses cascade
+> — a first round at 100 % first-try immediately pays every accuracy rung
+> (5+10+18+30 = 63 crowns) and maxes the accuracy tier. This is deliberate (a
+> gradual improver earns the same total across four rounds), but the
+> front-loaded number is large; `kid-ux-reviewer` / `typing-pedagogy-expert`
+> should confirm the amounts.
 >
 > **Localisation:** tier names are Swedish (see §3.1–3.2). The Phase 2+
 > banner/status copy below is illustrative Swedish — finalise wording with
@@ -258,10 +265,10 @@ Crowns currently buy nothing — all six `KK_AVATARS` are free from the start (`
 - Verified: fresh profile → `v:2`, empty `stats`; a played round writes `baselineCps` / `bestCps` / `bestFirstTry` / `bestStreak` / tiers / `roundsTotal`; a v1 save migrates with every crown, star, unlock and mastery box intact and no timing back-filled; no bonus crowns paid; `cps` clamped at the write point.
 - **Still owed — reviewer sign-off (retroactive, before Phase 2 builds on it):** `typing-pedagogy-expert` (is CPS + first-try-ratio + best-streak the right skill signal; is the 0.6 floor correct; does gating speed on accuracy adequately prevent hunt-and-peck being rewarded as "fast") **and** `kid-ux-reviewer` (5000ms idle cap value; confirm no data is written on `btn-exit`).
 
-### Phase 2 — Result-screen reward surfaces  **(MUST)**
-- Ships: "Your Progress" block in `renderResult` (`js/app.js:394-438`); pace ribbon; personal-best / tier-up / streak-record banners; new CSS in `styles.css` RESULTS section; `KKSfx.personalBest()` in `js/sfx.js`; menu crest chip in `stats-pill`.
-- Depends on: Phase 1 merged and live long enough for bests to exist.
-- **Sign-off before merge:** `kid-ux-reviewer` (max 3 lines / no stacking overwhelm, wording, animation under `--motion`, bar only fills) **and** `typing-pedagogy-expert` (tier names/cutoffs don't imply speed over technique; copy leads with accuracy; "faster" line never appears alongside a low first-try round).
+### Phase 2 — Result-screen reward surfaces  **(BUILT ✅)**
+- Shipped: `kkProgressBlockHtml` in `js/app.js` renders "Dina framsteg" between the result message and the practice list — up to two priority banners (personal-best → tier-up → faster-than-last) over a speed pace-ribbon that only fills (`kkSpeedPace` in `js/progress.js`); when nothing was beaten, one calm status line + the ribbon. `kkRecordRound` now pays tier crown bonuses (`KK_SPEED_TIER_CROWNS` / `KK_ACC_TIER_CROWNS`, once per rung via `speedTierPaid` / `accTierPaid`) plus personal-best nudge crowns; `finishRound` adds them to the round total and the "+N 👑" headline. `KKSfx.personalBest()` (three rising tones) on any personal-best or tier-up. Menu `stats-pill` gains a `.crest-chip` with the highest speed tier across levels once a baseline exists. CSS in `styles.css` PROGRESS BLOCK section; `.pb-banner` / `.pace-fill` disabled under `prefers-reduced-motion`.
+- Verified headless: two rounds on a fresh profile → banners render, ribbon fills to the right fraction, crown total matches the base + cascaded rung bonuses + nudges, crest chip shows "🐇 Snabba tassar", no console errors, v1/v2 saves still migrate.
+- **Still owed — reviewer sign-off:** `kid-ux-reviewer` (≤3 lines, wording, motion, bar-only-fills, cascade crown amounts) **and** `typing-pedagogy-expert` (tier names/cutoffs don't imply speed over technique; accuracy copy leads; "faster" line never shows alongside a low first-try round).
 
 ### Phase 3 — Milestones + crown sink  **(SHOULD)**
 - Ships: milestone crowns (`roundsTotal`, `bestStreakEver`, `milestonesPaid`); `KK_COSMETICS` in `js/data.js`; Shop screen from menu; `cosmetics.owned` / `equipped`; avatar render honours equipped cosmetic; optional 1-in-8 cosmetic sparkle drop.

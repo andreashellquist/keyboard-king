@@ -57,8 +57,18 @@ function kkDefaultLevelStat() {
   return {
     baselineCps: 0, bestCps: 0, lastCps: 0,
     bestFirstTry: 0, bestStreak: 0, roundsPlayed: 0,
-    speedTier: 0, accTier: 0,
+    speedTier: -1, accTier: -1,          // highest tier rung reached (-1 = none)
+    speedTierPaid: -1, accTierPaid: -1,  // highest rung whose crown bonus is paid
   };
+}
+
+// -1..maxIdx. Absent in a stored record (pre-Phase-2 save) → fall back to
+// the current tier, so upgrading never dumps retroactive crown bonuses.
+function kkClampTierIdx(raw, fallback, maxIdx) {
+  if (raw == null) return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return -1;
+  return Math.max(-1, Math.min(maxIdx, Math.round(n)));
 }
 
 /**
@@ -74,10 +84,17 @@ function kkSanitizeLevelStat(raw) {
   if (bestCps > 0 && baselineCps === 0) baselineCps = bestCps; // never divide by zero later
   const bestFirstTry = kkClampRatio01(raw.bestFirstTry);
 
-  let speedTier = Math.max(0, Math.min(KK_SPEED_TIERS.length - 1, kkClampCount(raw.speedTier)));
-  let accTier = Math.max(0, Math.min(KK_ACC_TIERS.length - 1, kkClampCount(raw.accTier)));
+  let speedTier = kkClampTierIdx(raw.speedTier, -1, KK_SPEED_TIERS.length - 1);
+  let accTier = kkClampTierIdx(raw.accTier, -1, KK_ACC_TIERS.length - 1);
+  // Tiers only ever ratchet up — re-derive from the (clamped) bests in case
+  // a cutoff was retuned downward, but never demote a stored tier.
   if (baselineCps > 0) speedTier = Math.max(speedTier, kkSpeedTierFromRatio(bestCps / baselineCps));
   accTier = Math.max(accTier, kkAccTierFromRatio(bestFirstTry));
+
+  let speedTierPaid = kkClampTierIdx(raw.speedTierPaid, speedTier, KK_SPEED_TIERS.length - 1);
+  let accTierPaid = kkClampTierIdx(raw.accTierPaid, accTier, KK_ACC_TIERS.length - 1);
+  speedTierPaid = Math.min(speedTierPaid, speedTier); // can't have paid a rung not yet reached
+  accTierPaid = Math.min(accTierPaid, accTier);
 
   return {
     baselineCps,
@@ -88,6 +105,8 @@ function kkSanitizeLevelStat(raw) {
     roundsPlayed: kkClampCount(raw.roundsPlayed),
     speedTier,
     accTier,
+    speedTierPaid,
+    accTierPaid,
   };
 }
 

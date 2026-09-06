@@ -37,9 +37,26 @@ const KK_ACC_TIERS = [
   { id: 'felfri', name: 'Felfritt anslag', icon: '🌟', ratio: 0.95 },
 ];
 
-/** Highest tier index whose `ratio` cutoff `value` has reached. */
+/**
+ * Crown bonus for reaching each tier rung, index-aligned to the tier
+ * arrays (docs/PROGRESSION.md §3.4). Paid once per rung, ever, per level.
+ * Accuracy ≥ speed at every ordinal; top accuracy (30) > top speed (20).
+ */
+const KK_SPEED_TIER_CROWNS = [2, 4, 6, 10, 14, 20];
+const KK_ACC_TIER_CROWNS = [5, 10, 18, 30];
+
+/** Sum of `table[fromExclusive+1 .. toInclusive]`. */
+function kkSumRungCrowns(table, fromExclusive, toInclusive) {
+  let sum = 0;
+  for (let i = Math.max(0, fromExclusive + 1); i <= toInclusive; i++) sum += table[i] || 0;
+  return sum;
+}
+
+/** Highest tier index whose `ratio` cutoff `value` has reached, or -1 for
+ *  "below the first rung". (Speed tier 0 has cutoff 0, so any qualifying
+ *  round clears it; accuracy tier 0 needs 0.50 first-try.) */
 function kkTierFromRatio(tiers, value) {
-  let idx = 0;
+  let idx = -1;
   for (let i = 0; i < tiers.length; i++) {
     if (Number.isFinite(value) && value >= tiers[i].ratio) idx = i;
   }
@@ -47,6 +64,31 @@ function kkTierFromRatio(tiers, value) {
 }
 function kkSpeedTierFromRatio(r) { return kkTierFromRatio(KK_SPEED_TIERS, r); }
 function kkAccTierFromRatio(a) { return kkTierFromRatio(KK_ACC_TIERS, a); }
+
+/**
+ * How full the speed pace-ribbon should be and what it points at, from a
+ * per-level stat record. The bar only ever fills; at the top tier it is
+ * full and static.
+ */
+function kkSpeedPace(st) {
+  const tiers = KK_SPEED_TIERS;
+  const idx = Math.max(0, Math.min(tiers.length - 1, st.speedTier));
+  const cur = tiers[idx];
+  const atTop = idx >= tiers.length - 1;
+  const next = atTop ? null : tiers[idx + 1];
+
+  let fill = 0.04;
+  if (atTop) {
+    fill = 1;
+  } else if (st.baselineCps > 0 && st.bestCps > 0) {
+    const r = st.bestCps / st.baselineCps;
+    const lo = idx === 0 ? 1.0 : cur.ratio; // tier 0's floor is "no improvement yet"
+    const hi = next.ratio;
+    fill = hi > lo ? (r - lo) / (hi - lo) : 0.04;
+  }
+  fill = Math.max(0.04, Math.min(1, fill));
+  return { idx, cur, next, atTop, fill };
+}
 
 /**
  * Record one finished round into `profile.stats`. Every write is monotonic
@@ -73,8 +115,10 @@ function kkRecordRound(profile, levelId, { cps, firstTryRatio, bestStreak, itemC
     newBestCps: false,
     newBestFirstTry: false,
     newBestStreak: false,
-    speedTierUp: 0,
-    accTierUp: 0,
+    speedRungReached: -1, // tier idx newly reached + paid this round, or -1
+    accRungReached: -1,
+    speedBonus: 0,        // crowns paid for speed rung(s) crossed this round
+    accBonus: 0,
     milestonesHit: [],
     bonusCrowns: 0,
     speedTierNow: st.speedTier,
@@ -97,15 +141,36 @@ function kkRecordRound(profile, levelId, { cps, firstTryRatio, bestStreak, itemC
   if (bestStreak > st.bestStreak) { st.bestStreak = bestStreak; out.newBestStreak = true; }
   if (bestStreak > s.bestStreakEver) s.bestStreakEver = bestStreak;
 
-  const sTier = st.baselineCps > 0 ? kkSpeedTierFromRatio(st.bestCps / st.baselineCps) : 0;
-  if (sTier > st.speedTier) { out.speedTierUp = sTier; st.speedTier = sTier; }
+  const sTier = st.baselineCps > 0 ? kkSpeedTierFromRatio(st.bestCps / st.baselineCps) : -1;
+  if (sTier > st.speedTier) st.speedTier = sTier;
   const aTier = kkAccTierFromRatio(st.bestFirstTry);
-  if (aTier > st.accTier) { out.accTierUp = aTier; st.accTier = aTier; }
+  if (aTier > st.accTier) st.accTier = aTier;
 
   out.speedTierNow = st.speedTier;
   out.accTierNow = st.accTier;
 
-  // Milestones (§3.5) and tier crown bonuses (§3.4) are Phase 2/3 — left
-  // unpaid here on purpose so this phase changes nothing a child can see.
+  // Crown bonuses (§3.4). Tier bonuses pay each newly-crossed rung once —
+  // st.speedTierPaid / st.accTierPaid only ratchet up, so a rung can never
+  // pay twice even across many rounds.
+  let bonus = 0;
+  if (sTier > st.speedTierPaid) {
+    out.speedBonus = kkSumRungCrowns(KK_SPEED_TIER_CROWNS, st.speedTierPaid, sTier);
+    out.speedRungReached = sTier;
+    st.speedTierPaid = sTier;
+    bonus += out.speedBonus;
+  }
+  if (aTier > st.accTierPaid) {
+    out.accBonus = kkSumRungCrowns(KK_ACC_TIER_CROWNS, st.accTierPaid, aTier);
+    out.accRungReached = aTier;
+    st.accTierPaid = aTier;
+    bonus += out.accBonus;
+  }
+  // Personal-best "nudge" crowns — only when the matching tier did not rise.
+  if (out.newBestCps && out.speedRungReached < 0) bonus += 1;
+  if (out.newBestFirstTry && out.accRungReached < 0) bonus += 2;
+  if (out.newBestStreak) bonus += 1;
+  out.bonusCrowns = bonus;
+
+  // Milestones (§3.5) remain Phase 3.
   return out;
 }

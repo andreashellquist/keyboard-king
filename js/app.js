@@ -30,6 +30,14 @@ function starsMarkup(n, max = 3) {
 function renderMenu() {
   SCREEN = 'menu';
   ROUND = null;
+
+  // Highest speed crest across all levels — a single decorative chip, shown
+  // once the child has one qualifying round anywhere (docs/PROGRESSION.md §3.6).
+  const perLevel = KK_LEVELS.map((l) => PROFILE.stats.perLevel[l.id]);
+  const anyBaseline = perLevel.some((st) => st.baselineCps > 0);
+  const topSpeedTier = Math.max(-1, ...perLevel.map((st) => st.speedTier));
+  const crest = anyBaseline ? KK_SPEED_TIERS[Math.max(0, topSpeedTier)] : null;
+
   appEl.innerHTML = `
     <h1 class="title">⌨️👑 Tangentbordskungen</h1>
     <p class="subtitle">Träna på att skriva – bli kung över tangentbordet!</p>
@@ -49,6 +57,7 @@ function renderMenu() {
 
     <div class="stats-pill">
       <span>👑 <b>${PROFILE.crowns}</b> kronor</span>
+      ${crest ? `<span class="crest-chip">${crest.icon} ${crest.name}</span>` : ''}
     </div>
 
     <button class="btn btn-gold" id="btn-play">Spela</button>
@@ -333,33 +342,44 @@ function finishRound() {
   const stars = ratio >= 0.8 ? 3 : ratio >= 0.5 ? 2 : 1;
   const crownsEarned = tally.first * 2 + tally.retry * 1 + tally.struggle * 1;
 
-  PROFILE.crowns += crownsEarned;
   PROFILE.bestStars[levelId] = Math.max(PROFILE.bestStars[levelId] || 0, stars);
   const idx = levelIndex(levelId);
   const next = KK_LEVELS[idx + 1];
   if (next && !PROFILE.unlocked.includes(next.id)) PROFILE.unlocked.push(next.id);
 
-  // Silent progression recording (docs/PROGRESSION.md Phase 1): personal
-  // bests + tiers are written to PROFILE.stats but nothing is shown and no
-  // bonus crowns are paid yet — that arrives with the result-screen surfaces.
+  // Progression recording (docs/PROGRESSION.md §1, §3): personal bests +
+  // tiers are ratcheted into PROFILE.stats and any tier / personal-best
+  // crown bonus is added on top of the per-round crowns.
   const secActive = Math.max(ROUND.msActive / 1000, 0.001);
   const cps = ROUND.correctChars / secActive;
-  const progressDelta = kkRecordRound(PROFILE, levelId, {
+  const delta = kkRecordRound(PROFILE, levelId, {
     cps,
     firstTryRatio: ratio,
     bestStreak: ROUND.bestStreakThisRound,
     itemCount: total,
   });
+  const crownsTotal = crownsEarned + delta.bonusCrowns;
+  PROFILE.crowns += crownsTotal;
   if (/[?&]debug\b/.test(location.search)) {
-    console.log('[kk] round recorded', { cps: cps.toFixed(2), ratio: ratio.toFixed(2), progressDelta, stats: PROFILE.stats.perLevel[levelId] });
+    console.log('[kk] round recorded', { cps: cps.toFixed(2), ratio: ratio.toFixed(2), delta, stats: PROFILE.stats.perLevel[levelId] });
   }
 
   saveProfile();
 
   KKSfx.roundDone(stars - 1);
   KKConfetti.burst(stars >= 2 ? 90 : 50);
+  const celebrate = delta.newBestCps || delta.newBestFirstTry || delta.newBestStreak
+    || delta.speedRungReached >= 0 || delta.accRungReached >= 0;
+  if (celebrate) setTimeout(() => KKSfx.personalBest(), 260);
 
-  renderResult({ stars, crownsEarned, levelId, next: next && PROFILE.unlocked.includes(next.id) ? next : null });
+  renderResult({
+    stars,
+    crownsEarned: crownsTotal,
+    levelId,
+    next: next && PROFILE.unlocked.includes(next.id) ? next : null,
+    delta,
+    levelStat: PROFILE.stats.perLevel[levelId],
+  });
 }
 
 function renderGame() {
@@ -434,7 +454,60 @@ function renderGame() {
 
 /* ───────────────────────── RESULT ───────────────────────── */
 
-function renderResult({ stars, crownsEarned, levelId, next }) {
+/**
+ * "Dina framsteg" block for the result screen (docs/PROGRESSION.md §3.3):
+ * up to two priority banners — personal best, then tier-up, then
+ * faster-than-last — over a speed pace-ribbon that only ever fills. When
+ * nothing was beaten, just a calm status line + the ribbon. Never a
+ * slower-than-last line, never red.
+ */
+function kkProgressBlockHtml(delta, st, level) {
+  if (!delta || !st) return '';
+  const banners = [];
+
+  if (delta.newBestFirstTry) {
+    banners.push({ cls: 'pb', text: `Nytt rekord! Din renaste runda på ${level.name} hittills 💎` });
+  } else if (delta.newBestCps) {
+    banners.push({ cls: 'pb', text: `Nytt rekord! Snabbare än någonsin på ${level.name} 🌱` });
+  }
+  if (delta.newBestStreak) {
+    banners.push({ cls: 'pb', text: `Nytt rekord: ${st.bestStreak} i rad utan miss 🔥` });
+  }
+  if (delta.accRungReached >= 0) {
+    const t = KK_ACC_TIERS[delta.accRungReached];
+    banners.push({ cls: 'tier', text: `Du nådde ${t.name} ${t.icon} på ${level.name}!`, crowns: delta.accBonus });
+  }
+  if (delta.speedRungReached >= 0) {
+    const t = KK_SPEED_TIERS[delta.speedRungReached];
+    banners.push({ cls: 'tier', text: `Du nådde ${t.name} ${t.icon} på ${level.name}!`, crowns: delta.speedBonus });
+  }
+  if (delta.faster && !delta.newBestCps) {
+    banners.push({ cls: 'faster', text: 'Lite snabbare än förra gången 🌱' });
+  }
+
+  const shown = banners.slice(0, 2);
+  const pace = kkSpeedPace(st);
+
+  let paceLabel;
+  if (pace.atTop) paceLabel = 'Kunglig fart 👑 — du flyger!';
+  else paceLabel = `På väg mot ${pace.next.name} ${pace.next.icon}`;
+
+  const calm = shown.length === 0
+    ? `<p class="pb-banner calm">${level.name}-fart: ${pace.cur ? pace.cur.name + ' ' + pace.cur.icon : 'Igång 🐣'} — fortsätt så!</p>`
+    : '';
+
+  return `
+    <div class="progress-block">
+      ${shown.map((b) => `<p class="pb-banner ${b.cls}">${b.text}${b.crowns ? ` <span class="pb-crowns">+${b.crowns} 👑</span>` : ''}</p>`).join('')}
+      ${calm}
+      <div class="pace">
+        <p class="pace-label">${paceLabel}</p>
+        <div class="pace-track"><div class="pace-fill" style="width:${Math.round(pace.fill * 100)}%"></div></div>
+      </div>
+    </div>`;
+}
+
+function renderResult({ stars, crownsEarned, levelId, next, delta, levelStat }) {
   SCREEN = 'result';
   const level = levelById(levelId);
   const msg = stars === 3
@@ -462,6 +535,7 @@ function renderResult({ stars, crownsEarned, levelId, next }) {
       <p class="result-stars">${starsMarkup(stars)}</p>
       <p class="result-crowns">+${crownsEarned} 👑</p>
       <p class="result-msg">${msg}</p>
+      ${kkProgressBlockHtml(delta, levelStat, level)}
       ${practice.length ? `
         <div class="practice-block">
           <p class="practice-label">Fortsätt träna på:</p>
